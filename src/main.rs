@@ -1,4 +1,5 @@
 use structopt::StructOpt;
+use std::sync::Arc;
 
 mod opt;
 mod server;
@@ -9,7 +10,7 @@ use server::server;
 use client::client;
 
 fn main() {
-    let opt = PiOpts::from_args();
+    let opt = Arc::new(PiOpts::from_args());
     if opt.debug {
         println!("{:?}", opt);
     }

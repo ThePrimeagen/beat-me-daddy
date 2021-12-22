@@ -1,6 +1,6 @@
 use structopt::StructOpt;
 
-#[derive(Debug, StructOpt)]
+#[derive(Debug, StructOpt, Clone)]
 #[structopt(name = "example", about = "An example of StructOpt usage.")]
 pub struct PiOpts {
     /// Activate debug mode
@@ -16,5 +16,8 @@ pub struct PiOpts {
     pub port: u16,
 
     #[structopt(short = "a", long = "addr")]
-    pub addr: String
+    pub addr: String,
+
+    #[structopt(short = "c", long = "command", default_value = "sonic_pi")]
+    pub command: String,
 }
