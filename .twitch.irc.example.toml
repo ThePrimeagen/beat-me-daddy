@@ -1,0 +1,5 @@
+nickname = "your-name-lowercase"
+password = "oauth:here"
+channel = ["#theprimeagen"]
+server = "irc://irc.chat.twitch.tv:6667"
+
