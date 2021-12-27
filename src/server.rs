@@ -1,7 +1,7 @@
 use std::net::TcpListener;
 use std::thread::spawn;
 use tungstenite::accept;
-use std::process::{Command};
+use std::process::Command;
 use std::sync::Arc;
 
 use crate::opt::PiOpts;

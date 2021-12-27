@@ -6,6 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+async-trait = "0.1.52"
 structopt = "0.3.25"
 tokio = { version = "1.15.0", features = ["full"] }
 tungstenite = "0.16.0"

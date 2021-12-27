@@ -1,22 +1,54 @@
-use tungstenite::{connect, Message};
-use url::Url;
-use crate::opt::PiOpts;
+use crate::{
+    event::Event,
+    event_bus::Listener,
+    opt::PiOpts,
+};
 use std::sync::Arc;
+use tungstenite::{connect, stream::MaybeTlsStream, Message, WebSocket};
+use url::Url;
 
-pub fn client(opts: Arc<PiOpts>) -> Result<(), Box<dyn std::error::Error>> {
-    let (mut socket, response) =
-        connect(Url::parse(format!("ws://{}:{}", opts.addr, opts.port).as_str()).unwrap())
-            .expect("Can't connect");
+pub struct Client {
+    on: bool,
+    socket: Option<WebSocket<MaybeTlsStream<std::net::TcpStream>>>,
+}
 
-    for (ref header, _value) in response.headers() {
-        println!("* {}", header);
+impl Listener for Client {
+    fn notify(&mut self, event: &Event) {
+        match event {
+            Event::OnCommand => {
+                self.on = true;
+            }
+            Event::OffCommand => {
+                self.on = false;
+            }
+            Event::DrumCommand(d) => {
+                if let Some(socket) = &mut self.socket {
+                    socket.write_message(Message::Text(format!("sample :{}", d).into()))
+                        .expect(
+                            "Socket connection cannot fail, or this entire program is doo doo garbage",
+                        );
+                }
+            }
+            _ => {}
+        }
+    }
+}
+
+impl Client {
+    pub fn new() -> Client {
+        return Client {
+            on: false,
+            socket: None,
+        };
     }
 
-    // loop {
-        socket.write_message(Message::Text("sample :bass_dnb_f".into()))?;
-    // }
+    pub fn connect(&mut self, opts: Arc<PiOpts>) -> Result<(), Box<dyn std::error::Error>> {
+        let (socket, _) =
+            connect(Url::parse(format!("ws://{}:{}", opts.addr, opts.port).as_str()).unwrap())
+                .expect("Can't connect");
 
-    // socket.close(None);
-    //
-    return Ok(());
+        self.socket = Some(socket);
+
+        return Ok(());
+    }
 }

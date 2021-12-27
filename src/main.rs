@@ -9,32 +9,50 @@ mod twitch;
 mod event_bus;
 mod event;
 mod prime_listener;
+mod twitch_chat_listener;
 
 use opt::PiOpts;
 use server::server;
-use client::client;
-use event_bus::{Dispatcher, Dispatchable};
+use client::Client;
+use event_bus::{Dispatcher, Dispatchable, run_dispatcher};
+use event::Event;
+
+use crate::twitch_chat_listener::TwitchChatListener;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opt = Arc::new(PiOpts::from_args());
-    let events = Arc::new(Mutex::new(Dispatcher::new()));
-    let twitch = twitch::Twitch::new(events.clone()).await;
-
-    let prime_events = Arc::new(Mutex::new(PrimeListener::new()));
-    events.lock().expect("events lock cannot fail here").register_listener(prime_events);
 
     if opt.debug {
         println!("{:?}", opt);
     }
 
     if opt.server {
-        server(opt)?;
+        server(opt).expect("The server should never fail");
     } else {
-        client(opt)?;
+        let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
+
+        let mut events = Dispatcher::new();
+        let twitch = twitch::Twitch::new(tx.clone()).await;
+        let prime_events = Arc::new(Mutex::new(PrimeListener::new(tx.clone())));
+        let twitch_chat_listener = Arc::new(Mutex::new(TwitchChatListener::new(tx.clone())));
+        let mut client = Client::new();
+
+        client.connect(opt)?;
+
+        events.register_listener(prime_events);
+        events.register_listener(twitch_chat_listener);
+
+        let client = Arc::new(Mutex::new(client));
+        events.register_listener(client);
+
+        tx.send(Event::StartOfProgram)?;
+
+        println!("Running dispatcher");
+        run_dispatcher(rx, events).await?;
+        twitch.join_handle.await?;
     }
 
-    twitch.join_handle.await?;
 
     return Ok(());
 }

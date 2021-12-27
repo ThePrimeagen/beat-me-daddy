@@ -1,4 +1,6 @@
 use std::sync::{Arc, Mutex};
+use tokio::{sync::mpsc::UnboundedReceiver, task::JoinHandle};
+
 use crate::event::Event;
 
 pub trait Listener {
@@ -23,17 +25,22 @@ impl Dispatchable for Dispatcher {
 
 impl Dispatcher {
     pub fn new() -> Dispatcher {
-        Dispatcher { listeners: Vec::new() }
+        return Dispatcher {
+            listeners: Vec::new(),
+        };
     }
+}
 
-    pub fn dispatch(&mut self, event: Event) -> Result<(), Box<dyn std::error::Error>> {
-        for l in self.listeners.iter() {
-            // TODO: I don't even get this
-            // TODO AT SOME POINT: Understand this
-            let mut listener = l.lock().expect("listener lock should never fail");
-            listener.notify(&event);
+pub fn run_dispatcher(mut rx: UnboundedReceiver<crate::event::Event>, mut dispatcher: Dispatcher) -> JoinHandle<()> {
+    let output_handle = tokio::spawn(async move {
+        while let Some(message) = rx.recv().await {
+            for l in dispatcher.listeners.iter_mut() {
+                l.lock().expect("Dumb ass kid back home").notify(&message.clone());
+            }
         }
 
-        return Ok(());
-    }
+        return ();
+    });
+
+    return output_handle;
 }

@@ -1,19 +1,17 @@
-use std::sync::{Arc, Mutex};
-
+use tokio::sync::mpsc::UnboundedSender;
 use tokio::task::JoinHandle;
 use twitch_irc::login::StaticLoginCredentials;
 use twitch_irc::TwitchIRCClient;
 use twitch_irc::{ClientConfig, SecureTCPTransport};
 
 use crate::event::Event;
-use crate::event_bus::Dispatcher;
 
 pub struct Twitch {
     pub join_handle: JoinHandle<()>,
 }
 
 impl Twitch {
-    pub async fn new(events: Arc<Mutex<Dispatcher>>) -> Twitch {
+    pub async fn new(tx: UnboundedSender<Event>) -> Twitch {
         let config: ClientConfig<StaticLoginCredentials> = ClientConfig::default();
         let (mut incoming_messages, client) =
             TwitchIRCClient::<SecureTCPTransport, StaticLoginCredentials>::new(config);
@@ -26,12 +24,7 @@ impl Twitch {
             client.join("theprimeagen".to_owned());
 
             while let Some(message) = incoming_messages.recv().await {
-                match events.lock() {
-                    Ok(mut e) => {
-                        e.dispatch(Event::TwitchIRC(message)).expect("Should always successfully dispatch twitch messages");
-                    },
-                    _ => {}
-                }
+                tx.send(Event::TwitchIRC(message)).expect("Never going to give you up");
             }
 
             return ();
