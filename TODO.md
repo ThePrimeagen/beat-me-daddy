@@ -29,3 +29,7 @@ sonic_pi: The command line utility to update sonic pi.
 ### Day 2
 Get twitch's chat hooked up to my program.  Get quirk.gg hooked up for events.
 
+#### Things I want to understand
+* Errors
+* mod.rs
+
