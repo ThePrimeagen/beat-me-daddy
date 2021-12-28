@@ -21,6 +21,8 @@ use twitch::{
     twitch_chat_listener::TwitchChatListener
 };
 
+use crate::quirk::{Quirk, get_quirk_token};
+
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv()?;
@@ -41,8 +43,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let prime_events = Arc::new(Mutex::new(PrimeListener::new(tx.clone())));
         let twitch_chat_listener = Arc::new(Mutex::new(TwitchChatListener::new(tx.clone())));
         let mut client = Client::new();
-        // let quirk_token = get_quirk_token().await?;
-        // let quirk = Quirk::new(tx.clone(), quirk_token);
+        let quirk_token = get_quirk_token().await?;
+        let quirk = Quirk::new(tx.clone(), quirk_token);
 
         client.connect(opt)?;
 
@@ -57,7 +59,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         println!("Running dispatcher");
         run_dispatcher(rx, events).await?;
         twitch.join_handle.await?;
-        // quirk.join_handle.await?;
+        quirk.join_handle.await?;
     }
 
 

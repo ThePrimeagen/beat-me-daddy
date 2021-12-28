@@ -33,13 +33,16 @@ pub async fn get_quirk_token() -> Result<String, Box<dyn std::error::Error>> {
         .json()
         .await?;
 
+    println!("{:?}", res);
+
     return Ok(res.access_token);
 }
 
 impl Quirk {
     pub fn new(tx: UnboundedSender<Event>, quirk_token: String) -> Quirk {
+        let url = format!("wss://websocket.quirk.tools?access_token={}", quirk_token);
         let (mut socket, _) =
-            connect(Url::parse(format!("wss://websocket.quirk.tools?access_token={}", quirk_token).as_str()).unwrap())
+            connect(Url::parse(url.as_str()).unwrap())
                 .expect("Can't connect");
 
         // first thing you should do: start consuming incoming messages,

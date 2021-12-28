@@ -1,12 +1,12 @@
 
 pub struct Bangers {
-    drum_heavy_kick: [bool; 256],
+    drum_heavy_kick: [bool; 64],
 }
 
 impl Bangers {
     pub fn new() -> Bangers {
         return Bangers {
-            drum_heavy_kick: [false; 256]
+            drum_heavy_kick: [false; 64]
         }
     }
 
@@ -18,7 +18,7 @@ impl Bangers {
             let position: usize = position.parse()?;
             println!("bang position {}", position);
 
-            if position < 256 {
+            if position < 64 {
                 self.drum_heavy_kick[position] = true;
             }
         }
@@ -30,12 +30,16 @@ impl Bangers {
         let mut banger: Vec<String> = vec!["live_loop :bangers do".to_string()];
 
         for play in self.drum_heavy_kick {
-            banger.push(if play {
-                "sample :drum_heavy_kick, rate 1".to_string()
-            } else {
+            if play {
+                banger.push(
+                    "sample :drum_heavy_kick".to_string()
+                );
+            }
+            banger.push(
                 "sleep 0.125".to_string()
-            });
+            );
         }
+        banger.push("end".to_string());
 
         return banger.join("\n");
     }

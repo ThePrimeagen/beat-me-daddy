@@ -31,14 +31,16 @@ impl Listener for Client {
                 }
             }
             Event::DrumCommand(d) => {
-                if !self.on {
+                /*if !self.on {
                     return;
                 }
+                */
 
                 self.banger.bang(&d).expect("This not to fail, don't do it chat or your ass is banned");
 
                 if let Some(socket) = &mut self.socket {
                     let music = self.banger.serialize();
+                    println!("music: {}", music);
                     socket.write_message(Message::Text(music))
                         .expect(
                             "Socket connection cannot fail, or this entire program is doo doo garbage",
