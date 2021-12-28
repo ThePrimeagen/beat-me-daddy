@@ -1,2 +1,3 @@
 /target
 .twitch.irc.toml
+/.env

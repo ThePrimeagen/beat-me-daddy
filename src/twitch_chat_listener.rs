@@ -36,6 +36,8 @@ impl Listener for TwitchChatListener {
                 println!("Sending command: {}", e.message_text);
                 self.tx.send(Event::DrumCommand(e.message_text.clone())).expect("Successful successing of drum successions");
             }
+        } else if let Event::QuirkMessage(s) = event {
+            println!("Message from Quirk {}", s);
         }
     }
 }
