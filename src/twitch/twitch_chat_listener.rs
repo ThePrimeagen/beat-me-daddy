@@ -7,8 +7,13 @@ pub struct TwitchChatListener {
     tx: UnboundedSender<Event>,
 }
 
-/*
-*/
+pub fn allow(nick: &String) -> bool {
+    return [
+        "oldmanjudo",
+        "ThePrimeagen",
+        "theprimeagen",
+    ].contains(&nick.as_str());
+}
 
 impl Listener for TwitchChatListener {
     fn notify(&mut self, event: &Event) {
@@ -33,8 +38,9 @@ impl Listener for TwitchChatListener {
                 "drum_bass_soft",
                 "drum_bass_hard",
             ].iter().filter(|t| ***t == e.message_text).count() > 0 {
-                println!("Sending command: {}", e.message_text);
-                self.tx.send(Event::DrumCommand(e.message_text.clone())).expect("Successful successing of drum successions");
+                if allow(&e.sender.name) {
+                    self.tx.send(Event::DrumCommand(e.message_text.clone())).expect("Successful successing of drum successions");
+                }
             }
         } else if let Event::QuirkMessage(s) = event {
             println!("Message from Quirk {}", s);

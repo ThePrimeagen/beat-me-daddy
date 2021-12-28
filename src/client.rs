@@ -1,15 +1,16 @@
 use crate::{
     event::Event,
     event_bus::Listener,
-    opt::PiOpts,
+    opt::PiOpts, bangers::Bangers,
 };
-use std::sync::Arc;
+use std::{sync::Arc, net::ToSocketAddrs};
 use tungstenite::{connect, stream::MaybeTlsStream, Message, WebSocket};
 use url::Url;
 
 pub struct Client {
     on: bool,
     socket: Option<WebSocket<MaybeTlsStream<std::net::TcpStream>>>,
+    banger: Bangers,
 }
 
 impl Listener for Client {
@@ -21,9 +22,24 @@ impl Listener for Client {
             Event::OffCommand => {
                 self.on = false;
             }
-            Event::DrumCommand(d) => {
+            Event::Play(p) => {
                 if let Some(socket) = &mut self.socket {
-                    socket.write_message(Message::Text(format!("sample :{}", d).into()))
+                    socket.write_message(Message::Text(p.to_string()))
+                        .expect(
+                            "Socket connection cannot fail, or this entire program is doo doo garbage",
+                        );
+                }
+            }
+            Event::DrumCommand(d) => {
+                if !self.on {
+                    return;
+                }
+
+                self.banger.bang(&d).expect("This not to fail, don't do it chat or your ass is banned");
+
+                if let Some(socket) = &mut self.socket {
+                    let music = self.banger.serialize();
+                    socket.write_message(Message::Text(music))
                         .expect(
                             "Socket connection cannot fail, or this entire program is doo doo garbage",
                         );
@@ -39,6 +55,7 @@ impl Client {
         return Client {
             on: false,
             socket: None,
+            banger: Bangers::new(),
         };
     }
 
