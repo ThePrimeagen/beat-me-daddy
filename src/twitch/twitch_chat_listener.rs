@@ -7,6 +7,9 @@ pub struct TwitchChatListener {
     tx: UnboundedSender<Event>,
 }
 
+/*
+*/
+
 pub fn allow(nick: &String) -> bool {
     return [
         "oldmanjudo",
@@ -18,34 +21,9 @@ pub fn allow(nick: &String) -> bool {
 impl Listener for TwitchChatListener {
     fn notify(&mut self, event: &Event) {
         if let Event::TwitchIRC(ServerMessage::Privmsg(e)) = event {
-            println!("Message {}", e.message_text);
-            /*
-            if [
-                "drum_heavy_kick",
-                "drum_tom_mid_soft",
-                "drum_tom_mid_hard",
-                "drum_tom_lo_soft",
-                "drum_tom_lo_hard",
-                "drum_tom_hi_soft",
-                "drum_tom_hi_hard",
-                "drum_splash_soft",
-                "drum_splash_hard",
-                "drum_snare_soft",
-                "drum_snare_hard",
-                "drum_cymbal_soft",
-                "drum_cymbal_hard",
-                "drum_cymbal_open",
-                "drum_cymbal_closed",
-                "drum_cymbal_pedal",
-                "drum_bass_soft",
-                "drum_bass_hard",
-            //].iter().filter(|t| ***t == e.message_text).count() > 0 {
-                */
-                println!("Message#allowed {}", allow(&e.sender.name));
-                if allow(&e.sender.name) {
-                    self.tx.send(Event::DrumCommand(e.message_text.clone())).expect("Successful successing of drum successions");
-                }
-            // }
+            if allow(&e.sender.name) {
+                self.tx.send(Event::DrumCommand(e.message_text.clone())).expect("Successful successing of drum successions");
+            }
         } else if let Event::QuirkMessage(s) = event {
             println!("Message from Quirk {}", s);
         }

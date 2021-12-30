@@ -22,7 +22,12 @@ impl Runner for PlayTheThing {
     fn matches(&mut self, event: &Event) -> bool {
         if let Event::TwitchIRC(ServerMessage::Privmsg(e)) = event {
             if is_prime(e) && e.message_text.starts_with("!play") {
-                self.tx.send(Event::Play(e.message_text[5..].to_string())).expect("Successful tx send");
+
+                if e.message_text == "!play stop" {
+                    self.tx.send(Event::Stop).expect("Successful tx send");
+                } else {
+                    self.tx.send(Event::Play(e.message_text[5..].to_string())).expect("Successful tx send");
+                }
                 return true;
             }
         }

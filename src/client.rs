@@ -3,7 +3,7 @@ use crate::{
     event_bus::Listener,
     opt::PiOpts, bangers::Bangers,
 };
-use std::{sync::Arc, net::ToSocketAddrs};
+use std::sync::Arc;
 use tungstenite::{connect, stream::MaybeTlsStream, Message, WebSocket};
 use url::Url;
 
@@ -22,6 +22,10 @@ impl Listener for Client {
             Event::OffCommand => {
                 self.on = false;
             }
+            Event::Stop => {
+                self.banger.reset();
+                self.send_music();
+            }
             Event::Play(p) => {
                 if let Some(socket) = &mut self.socket {
                     socket.write_message(Message::Text(p.to_string()))
@@ -31,21 +35,11 @@ impl Listener for Client {
                 }
             }
             Event::DrumCommand(d) => {
-                /*if !self.on {
+                if let Err(_) = self.banger.bang(&d) {
+                    println!("Drum command failed {}", d);
                     return;
                 }
-                */
-
-                self.banger.bang(&d).expect("This not to fail, don't do it chat or your ass is banned");
-
-                if let Some(socket) = &mut self.socket {
-                    let music = self.banger.serialize();
-                    println!("music: {}", music);
-                    socket.write_message(Message::Text(music))
-                        .expect(
-                            "Socket connection cannot fail, or this entire program is doo doo garbage",
-                        );
-                }
+                self.send_music();
             }
             _ => {}
         }
@@ -53,6 +47,16 @@ impl Listener for Client {
 }
 
 impl Client {
+    fn send_music(&mut self) {
+        if let Some(socket) = &mut self.socket {
+            let music = self.banger.serialize();
+            println!("music: {}", music);
+            socket.write_message(Message::Text(music))
+                .expect(
+                    "Socket connection cannot fail, or this entire program is doo doo garbage",
+                );
+        }
+    }
     pub fn new() -> Client {
         return Client {
             on: false,

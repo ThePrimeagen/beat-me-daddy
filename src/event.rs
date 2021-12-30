@@ -4,6 +4,7 @@ use twitch_irc::message::ServerMessage;
 pub enum Event {
     TwitchIRC(ServerMessage),
     DrumCommand(String),
+    Stop,
     Play(String),
     QuirkMessage(String),
     OnCommand,
