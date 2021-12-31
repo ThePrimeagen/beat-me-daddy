@@ -15,7 +15,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             Ok(Event::Input(c)) => ui.key(c),
             Ok(Event::Tick) => ui.tick(),
             _ => continue
-        }
+        }?;
     }
 
     return Ok(());

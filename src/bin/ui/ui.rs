@@ -11,7 +11,6 @@ use tui::widgets::{Widget, Block, Borders, BorderType, Paragraph, Wrap};
 use tui::layout::{Layout, Constraint, Direction, Alignment, Rect};
 use crate::util::event::{Events, Event};
 
-
 const UNSELECTED: &str = "░";
 const SELECTED: &str = "█";
 
@@ -33,11 +32,12 @@ impl UI {
         });
     }
 
-    pub fn key(&mut self, key: Key) {
+    pub fn key(&mut self, key: Key) -> Result<(), Box<dyn std::error::Error>> {
+        return Ok(());
     }
 
-    pub fn tick(&mut self) {
-        self.render();
+    pub fn tick(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        return self.render();
     }
 
     fn render(&mut self) -> Result<(), Box<dyn std::error::Error>> {
@@ -61,7 +61,6 @@ impl UI {
                 .block(Block::default().title("Left Block"))
                 .alignment(Alignment::Left).wrap(Wrap { trim: true });
             f.render_widget(paragraph, size);
-
         })?;
 
         return Ok(());

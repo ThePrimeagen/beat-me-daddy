@@ -11,11 +11,14 @@ pub struct TwitchChatListener {
 */
 
 pub fn allow(nick: &String) -> bool {
+    /*
     return [
         "oldmanjudo",
         "ThePrimeagen",
         "theprimeagen",
     ].contains(&nick.as_str());
+    */
+    return true;
 }
 
 impl Listener for TwitchChatListener {

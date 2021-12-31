@@ -5,6 +5,7 @@ use crate::{
 };
 
 use std::sync::Arc;
+use beatmedaddy::bangers::{WriteNode, BangersSerializer, Direction};
 use tungstenite::{connect, stream::MaybeTlsStream, Message, WebSocket};
 use url::Url;
 
@@ -47,10 +48,54 @@ impl Listener for Client {
     }
 }
 
+struct TwitchSerializer {
+    msg: Vec<String>,
+}
+
+impl BangersSerializer for TwitchSerializer {
+    fn write(&mut self, node: WriteNode) {
+        match node {
+            WriteNode::Thing(drum, _, on) => {
+                if on {
+                    self.msg.push(format!("sample :{}", drum).to_string());
+                }
+            },
+            WriteNode::ThingDone => {
+                self.msg.push("sleep 0.25".to_string());
+            }
+        }
+    }
+}
+
+impl TwitchSerializer {
+    fn new() -> TwitchSerializer {
+        return TwitchSerializer {
+            msg: Vec::new(),
+        }
+    }
+
+    fn to_string(&self) -> String {
+        let mut msg = self.msg.clone();
+
+        // TODO: Research VecDeque
+        // What is it?
+        msg.insert(0, "live_loop :bangers do".to_string());
+        msg.insert(1, "    use_bpm 120".to_string());
+        msg.push("end".to_string());
+
+        return msg.join("\n");
+    }
+}
+
 impl Client {
     fn send_music(&mut self) {
         if let Some(socket) = &mut self.socket {
-            let music = self.banger.serialize();
+            let mut serializer = TwitchSerializer::new();
+
+            self.banger.serialize(Direction::Column, &mut serializer);
+
+            let music = serializer.to_string();
+
             println!("music: {}", music);
             socket.write_message(Message::Text(music))
                 .expect(

@@ -1,6 +1,6 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap, str::FromStr, rc::Rc};
 
-const BEAT_COUNT: usize = 128;
+const BEAT_COUNT: usize = 64;
 const DRUM_NAMES: [&str; 22] = [
     "bd_pure",
     "bd_boom",
@@ -25,6 +25,20 @@ const DRUM_NAMES: [&str; 22] = [
     "drum_bass_soft",
     "drum_bass_hard",
 ];
+
+pub enum WriteNode {
+    Thing(String, usize, bool),
+    ThingDone,
+}
+
+pub trait BangersSerializer {
+    fn write(&mut self, node: WriteNode);
+}
+
+pub enum Direction {
+    Row,
+    Column,
+}
 
 pub struct Bangers {
     drums: HashMap<String, [bool; BEAT_COUNT]>,
@@ -105,22 +119,22 @@ impl Bangers {
         return &DRUM_NAMES;
     }
 
-    pub fn serialize(&self) -> String {
-        let mut banger: Vec<String> = vec![
-            "live_loop :bangers do".to_string(),
-            "    use_bpm 120".to_string(),
-        ];
+    pub fn serialize<T: BangersSerializer>(&self, direction: Direction, writer: &mut T) {
 
-        for pos in 0..BEAT_COUNT {
-            for (drum, positions) in &self.drums {
-                if positions[pos] {
-                    banger.push(format!("sample :{}", drum).to_string());
+        /*
+        */
+
+        if let Direction::Column = direction {
+            for pos in 0..BEAT_COUNT {
+                for (drum, positions) in &self.drums {
+                    writer.write(WriteNode::Thing(drum.clone(), pos, positions[pos]));
                 }
+                writer.write(WriteNode::ThingDone);
             }
-            banger.push("sleep 0.25".to_string());
         }
 
-        banger.push("end".to_string());
-        return banger.join("\n");
+
+        // banger.push("end".to_string());
+        // return banger.join("\n");
     }
 }
