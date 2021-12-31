@@ -1,8 +1,9 @@
 use crate::{
     event::Event,
     event_bus::Listener,
-    opt::PiOpts, bangers::Bangers,
+    opt::PiOpts
 };
+
 use std::sync::Arc;
 use tungstenite::{connect, stream::MaybeTlsStream, Message, WebSocket};
 use url::Url;
@@ -10,7 +11,7 @@ use url::Url;
 pub struct Client {
     on: bool,
     socket: Option<WebSocket<MaybeTlsStream<std::net::TcpStream>>>,
-    banger: Bangers,
+    banger: beatmedaddy::bangers::Bangers,
 }
 
 impl Listener for Client {
@@ -61,7 +62,7 @@ impl Client {
         return Client {
             on: false,
             socket: None,
-            banger: Bangers::new(),
+            banger: beatmedaddy::bangers::Bangers::new(),
         };
     }
 

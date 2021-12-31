@@ -1,7 +1,6 @@
 use structopt::StructOpt;
 use std::sync::{Arc, Mutex};
 
-mod bangers;
 mod opt;
 mod server;
 mod client;
@@ -9,6 +8,7 @@ mod event_bus;
 mod event;
 mod quirk;
 mod twitch;
+mod bangers;
 
 use opt::PiOpts;
 use server::server;

@@ -13,7 +13,9 @@ reqwest = { version = "0.11.8", features = ["json"] }
 serde = { version = "1.0.132", features = ["derive"] }
 serde_json = "1.0.73"
 structopt = "0.3.25"
+termion = "1.5.6"
 tokio = { version = "1.15.0", features = ["full"] }
+tui = "0.16.0"
 tungstenite = { version = "0.16.0", features = ["native-tls"] }
 twitch-irc = "3.0.1"
 url = "2.2.2"

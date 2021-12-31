@@ -64,7 +64,7 @@ impl FromStr for Bang {
         let positions: Vec<usize> = positions
             .split(" ")
             .flat_map(str::parse)
-            .map(|x| x - 1)
+            // .map(|x| x - 1)
             .collect();
 
         return Ok(Bang {
@@ -76,9 +76,12 @@ impl FromStr for Bang {
 
 impl Bangers {
     pub fn new() -> Bangers {
-        return Bangers {
-            drums: HashMap::new(),
-        };
+        let mut drums = HashMap::new();
+        for name in &DRUM_NAMES {
+            drums.insert(name.to_string(), [false; BEAT_COUNT]);
+        }
+
+        return Bangers { drums };
     }
 
     pub fn reset(&mut self) {
@@ -96,6 +99,10 @@ impl Bangers {
         }
 
         return Ok(());
+    }
+
+    pub fn get_keys() -> &'static[&'static str] {
+        return &DRUM_NAMES;
     }
 
     pub fn serialize(&self) -> String {
