@@ -101,7 +101,7 @@ impl Bangers {
     pub fn serialize(&self) -> String {
         let mut banger: Vec<String> = vec![
             "live_loop :bangers do".to_string(),
-            "    use_bpm 60".to_string(),
+            "    use_bpm 120".to_string(),
         ];
 
         for pos in 0..BEAT_COUNT {
@@ -110,7 +110,7 @@ impl Bangers {
                     banger.push(format!("sample :{}", drum).to_string());
                 }
             }
-            banger.push("sleep 0.125".to_string());
+            banger.push("sleep 0.25".to_string());
         }
 
         banger.push("end".to_string());
