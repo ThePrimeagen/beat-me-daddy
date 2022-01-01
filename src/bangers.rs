@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr, rc::Rc};
+use std::{collections::HashMap, str::FromStr};
 
 const BEAT_COUNT: usize = 64;
 const DRUM_NAMES: [&str; 22] = [
@@ -102,6 +102,7 @@ impl Bangers {
         self.drums = HashMap::new();
     }
 
+    // For twitch
     pub fn bang(&mut self, bang: &String) -> Result<(), Box<dyn std::error::Error>> {
         let bang: Bang = bang.parse()?;
         if bang.is_valid() {
@@ -115,14 +116,22 @@ impl Bangers {
         return Ok(());
     }
 
+    // For the cli
+    pub fn on(&mut self, drum_idx: usize, column: usize) {
+        self.drums
+            .entry(DRUM_NAMES[drum_idx].to_string())
+            .or_insert([false; BEAT_COUNT])[column] = true;
+    }
+
     pub fn get_keys() -> &'static[&'static str] {
         return &DRUM_NAMES;
     }
 
-    pub fn serialize<T: BangersSerializer>(&self, direction: Direction, writer: &mut T) {
+    pub fn get_count() -> usize {
+        return BEAT_COUNT;
+    }
 
-        /*
-        */
+    pub fn serialize<T: BangersSerializer>(&self, direction: Direction, writer: &mut T) {
 
         if let Direction::Column = direction {
             for pos in 0..BEAT_COUNT {
@@ -131,10 +140,13 @@ impl Bangers {
                 }
                 writer.write(WriteNode::ThingDone);
             }
+        } else if let Direction::Row = direction {
+            for (drum, positions) in &self.drums {
+                for pos in 0..BEAT_COUNT {
+                    writer.write(WriteNode::Thing(drum.clone(), pos, positions[pos]));
+                }
+                writer.write(WriteNode::ThingDone);
+            }
         }
-
-
-        // banger.push("end".to_string());
-        // return banger.join("\n");
     }
 }

@@ -23,7 +23,6 @@ pub fn server(opts: Arc<PiOpts>) -> Result<(), Box<dyn std::error::Error>> {
                     Err(_) => break
                 };
 
-
                 // We do not want to send back ping/pong messages.
                 if msg.is_text() {
                     println!("music: {}", msg);

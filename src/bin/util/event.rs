@@ -28,7 +28,7 @@ pub struct Config {
 impl Default for Config {
     fn default() -> Config {
         Config {
-            tick_rate: Duration::from_millis(250),
+            tick_rate: Duration::from_millis(15),
             input_rate: Duration::from_millis(10),
         }
     }

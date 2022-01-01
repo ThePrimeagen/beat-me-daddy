@@ -52,6 +52,7 @@ dependencies = [
  "async-trait",
  "dotenv",
  "hyper",
+ "itertools",
  "reqwest",
  "serde",
  "serde_json",
