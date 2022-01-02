@@ -18,6 +18,33 @@ pub struct PlayTheThing {
     pub tx: UnboundedSender<Event>,
 }
 
+pub struct Debug { }
+impl Runner for Debug {
+    fn matches(&mut self, event: &Event) -> bool {
+        if let Event::TwitchIRC(ServerMessage::Privmsg(e)) = event {
+            if e.message_text.starts_with("!debug") {
+                let test = '♥';
+                /*
+                print!("DEBUG: ");
+                e.message_text.chars().filter(|c| (*c as u32 >= test as u32)).for_each(|c| {
+                    print!("{} ", (c as u32 - test as u32));
+                });
+                */
+                for t in 1..1024 {
+                    if t % 500 == 0 {
+                        println!();
+                        println!("----");
+                    }
+                    print!("{} ", char::from_u32(test as u32 + t).unwrap());
+                }
+                println!();
+                return true;
+            }
+        }
+        return true;
+    }
+}
+
 impl Runner for PlayTheThing {
     fn matches(&mut self, event: &Event) -> bool {
         if let Event::TwitchIRC(ServerMessage::Privmsg(e)) = event {

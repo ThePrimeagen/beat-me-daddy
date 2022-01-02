@@ -5,14 +5,14 @@ use crate::{
 };
 
 use std::sync::Arc;
-use beatmedaddy::bangers::{WriteNode, BangersSerializer, Direction};
+use beatmedaddy::bangers::bangers::{WriteNode, BangersSerializer, Direction};
 use tungstenite::{connect, stream::MaybeTlsStream, Message, WebSocket};
 use url::Url;
 
 pub struct Client {
     on: bool,
     socket: Option<WebSocket<MaybeTlsStream<std::net::TcpStream>>>,
-    banger: beatmedaddy::bangers::Bangers,
+    banger: beatmedaddy::bangers::bangers::Bangers,
 }
 
 impl Listener for Client {
@@ -48,13 +48,19 @@ impl Listener for Client {
     }
 }
 
-struct TwitchSerializer {
+struct SonicPiSerializer {
     msg: Vec<String>,
 }
 
-impl BangersSerializer for TwitchSerializer {
+impl BangersSerializer for SonicPiSerializer {
+    fn direction(&self) -> Direction {
+        return Direction::Column;
+    }
+
     fn write(&mut self, node: WriteNode) {
         match node {
+            WriteNode::ThingFinished => {}
+
             WriteNode::Thing(drum, _, on) => {
                 if on {
                     self.msg.push(format!("sample :{}", drum).to_string());
@@ -67,9 +73,9 @@ impl BangersSerializer for TwitchSerializer {
     }
 }
 
-impl TwitchSerializer {
-    fn new() -> TwitchSerializer {
-        return TwitchSerializer {
+impl SonicPiSerializer {
+    fn new() -> SonicPiSerializer {
+        return SonicPiSerializer {
             msg: Vec::new(),
         }
     }
@@ -90,9 +96,9 @@ impl TwitchSerializer {
 impl Client {
     fn send_music(&mut self) {
         if let Some(socket) = &mut self.socket {
-            let mut serializer = TwitchSerializer::new();
+            let mut serializer = SonicPiSerializer::new();
 
-            self.banger.serialize(Direction::Column, &mut serializer);
+            self.banger.serialize(&mut serializer);
 
             let music = serializer.to_string();
 
@@ -107,7 +113,7 @@ impl Client {
         return Client {
             on: false,
             socket: None,
-            banger: beatmedaddy::bangers::Bangers::new(),
+            banger: beatmedaddy::bangers::bangers::Bangers::new(),
         };
     }
 

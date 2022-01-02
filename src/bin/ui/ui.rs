@@ -1,5 +1,6 @@
 use crate::util::event::{Event, Events};
-use beatmedaddy::bangers::{Bangers, BangersSerializer, WriteNode};
+use beatmedaddy::bangers::bangers::{self, Bangers, BangersSerializer, WriteNode};
+use beatmedaddy::bangers::boolizer::{Boolizer, STARTING_UTF};
 use itertools::Itertools;
 use std::collections::HashMap;
 use std::io::{self, Stdout};
@@ -24,6 +25,7 @@ pub struct UI {
     bangers: Bangers,
     terminal: Terminal<TermionBackend<RawTerminal<Stdout>>>,
     cursor: Cursor,
+    title: String,
 }
 
 struct UIBangerSerializer {
@@ -108,11 +110,16 @@ impl UIBangerSerializer {
         };
     }
 
-    fn drums_to_spans<'a>(&mut self, order: &'static [&'static str]) -> Vec<Spans<'a>> {
+    fn drums_to_spans<'a>(&mut self, order: &'static [&'static str], cursor: &Cursor) -> Vec<Spans<'a>> {
         let mut out: Vec<Spans<'a>> = Vec::new();
 
-        for drum in order {
-            out.push(Spans::from(drum.to_string()));
+        for (idx, drum) in order.iter().enumerate() {
+            if cursor.at_drum(idx) {
+                // TODO: Fix this and make it pretty
+                out.push(Spans::from(drum.to_string()));
+            } else {
+                out.push(Spans::from(drum.to_string()));
+            }
         }
 
         return out;
@@ -139,11 +146,6 @@ impl UIBangerSerializer {
                     }
                     return Span::from(note);
                 })
-            /*
-                .chunks(4)
-                .into_iter()
-                .map(|mut x| x.join(" "))
-            */
                 .collect::<Vec<Span>>();
 
                 out.push(Spans::from(span_list));
@@ -153,13 +155,52 @@ impl UIBangerSerializer {
     }
 }
 
+struct TwitchSerializer {
+    data: Boolizer,
+}
+
+impl TwitchSerializer {
+    fn new(bit_length: usize) -> TwitchSerializer {
+        return TwitchSerializer {
+            data: Boolizer::new(bit_length)
+        }
+    }
+
+    fn to_twitch_string(&self) -> String {
+        return STARTING_UTF.to_string() + &self.data.data.iter().collect::<String>();
+    }
+}
+
+impl BangersSerializer for TwitchSerializer {
+    fn direction(&self) -> bangers::Direction {
+        return bangers::Direction::Row;
+    }
+
+    fn write(&mut self, node: WriteNode) {
+        match node {
+            WriteNode::Thing(.., on) => {
+                self.data.push(on).expect("This should never fail, said me once before.");
+            }
+
+            WriteNode::ThingDone => {}
+            WriteNode::ThingFinished => { }
+        }
+    }
+}
+
 impl BangersSerializer for UIBangerSerializer {
+
+    fn direction(&self) -> bangers::Direction {
+        return bangers::Direction::Row;
+    }
+
     fn write(&mut self, node: WriteNode) {
         match node {
             WriteNode::Thing(drum, pos, on) => {
                 self.drums.entry(drum).or_insert([false; BEAT_COUNT])[pos] = on;
             }
             WriteNode::ThingDone => {}
+            WriteNode::ThingFinished => {}
         }
     }
 }
@@ -184,6 +225,7 @@ impl UI {
             bangers: Bangers::new(),
             terminal,
             cursor: Cursor::new(),
+            title: "Sugma".to_string(),
         });
     }
 
@@ -200,9 +242,14 @@ impl UI {
             Key::Char('w') => call_cursor!(self, w),
             Key::Char('j') => call_cursor!(self, j),
             Key::Char('k') => call_cursor!(self, k),
-            Key::Char('\n' | ' ') => {
+            Key::Char(' ') => {
                 self.bangers.on(self.cursor.drum_idx, self.cursor.column);
                 self.render()?;
+            }
+            Key::Char('\n') => {
+                let mut serializer = TwitchSerializer::new(10);
+                self.bangers.serialize(&mut serializer);
+                self.title = serializer.to_twitch_string();
             }
             _ => {}
         }
@@ -217,23 +264,30 @@ impl UI {
         self.terminal.draw(|f| {
             let size = f.size();
 
-            /*
-            let outer = Layout::default()
+            let top = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([Constraint::Length(1), Constraint::Min(12)].as_ref())
+                .constraints([Constraint::Length(2), Constraint::Min(12)].as_ref())
                 .split(size);
-            */
+
+            let title = Paragraph::new(
+                Span::styled(self.title.clone(), Style::default().fg(Color::Red))
+            )
+                .block(Block::default())
+                .alignment(Alignment::Left)
+                .wrap(Wrap { trim: true });
+
+            f.render_widget(title, top[0]);
 
             let chunks = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Length(18), Constraint::Min(12)].as_ref())
-                .split(size);
+                .split(top[1]);
 
             let mut serializer = UIBangerSerializer::new();
             self.bangers
-                .serialize(beatmedaddy::bangers::Direction::Row, &mut serializer);
+                .serialize(&mut serializer);
             let drum_lines = serializer.to_spans(Bangers::get_keys(), &self.cursor);
-            let drums = serializer.drums_to_spans(Bangers::get_keys());
+            let drums = serializer.drums_to_spans(Bangers::get_keys(), &self.cursor);
 
             let drum_names = Paragraph::new(drums)
                 .block(Block::default().title("Drums"))
@@ -242,7 +296,7 @@ impl UI {
             f.render_widget(drum_names, chunks[0]);
 
             let paragraph = Paragraph::new(drum_lines)
-                .block(Block::default().title(format!("{:?}", size)))
+                .block(Block::default().title("Tracks"))
                 .alignment(Alignment::Left)
                 .wrap(Wrap { trim: true });
             f.render_widget(paragraph, chunks[1]);

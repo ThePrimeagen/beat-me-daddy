@@ -1,5 +1,5 @@
 use tokio::sync::mpsc::UnboundedSender;
-use super::runners::{Runner, PlayTheThing, TurnMeDaddy};
+use super::runners::{Runner, Debug, PlayTheThing, TurnMeDaddy};
 
 use crate::{event::Event, event_bus::Listener};
 
@@ -22,6 +22,7 @@ impl PrimeListener {
         let runners: Vec<Box<dyn Runner + Send>> = vec![
             Box::new(PlayTheThing { tx: tx.clone() }),
             Box::new(TurnMeDaddy { tx: tx.clone() }),
+            Box::new(Debug {}),
         ];
 
         return PrimeListener {
