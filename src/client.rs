@@ -63,7 +63,7 @@ impl BangersSerializer for SonicPiSerializer {
 
             WriteNode::Thing(drum, _, on) => {
                 if on {
-                    self.msg.push(format!("sample :{}", drum).to_string());
+                    self.msg.push(format!("sample :{}", drum));
                 }
             },
             WriteNode::ThingDone => {

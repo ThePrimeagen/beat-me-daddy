@@ -10,7 +10,7 @@ pub struct TwitchChatListener {
 /*
 */
 
-pub fn allow(_nick: &String) -> bool {
+pub fn allow(_nick: &str) -> bool {
     /*
     return [
         "oldmanjudo",

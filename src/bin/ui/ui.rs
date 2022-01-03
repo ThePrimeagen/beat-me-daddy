@@ -28,7 +28,7 @@ pub struct UI {
 }
 
 struct UIBangerSerializer {
-    drums: HashMap<String, [bool; BEAT_COUNT]>,
+    drums: HashMap<&'static str, [bool; BEAT_COUNT]>,
 }
 
 // TODO: Do I like the cursor moving itself?  Or just have it dumb?
@@ -112,12 +112,12 @@ impl UIBangerSerializer {
     fn drums_to_spans<'a>(&mut self, order: &'static [&'static str], cursor: &Cursor) -> Vec<Spans<'a>> {
         let mut out: Vec<Spans<'a>> = Vec::new();
 
-        for (idx, drum) in order.iter().enumerate() {
+        for (idx, &drum) in order.iter().enumerate() {
             if cursor.at_drum(idx) {
                 // TODO: Fix this and make it pretty
-                out.push(Spans::from(drum.to_string()));
+                out.push(Spans::from(drum));
             } else {
-                out.push(Spans::from(drum.to_string()));
+                out.push(Spans::from(drum));
             }
         }
 
@@ -130,9 +130,10 @@ impl UIBangerSerializer {
         let mut out: Vec<Spans<'a>> = Vec::new();
 
         // How do i place cursor?
-        for (idx, drum) in order.iter().enumerate() {
-            let span_list = self.drums
-                .entry(drum.to_string())
+        for (idx, &drum) in order.iter().enumerate() {
+            let span_list = self
+                .drums
+                .entry(drum)
                 .or_insert([false; BEAT_COUNT])
                 .iter()
                 .enumerate()
@@ -272,9 +273,7 @@ impl UI {
                 .constraints([Constraint::Length(2), Constraint::Min(12)].as_ref())
                 .split(size);
 
-            let title = Paragraph::new(
-                Span::styled(self.title.clone(), Style::default().fg(Color::Red))
-            )
+            let title = Paragraph::new(Span::styled(&self.title, Style::default().fg(Color::Red)))
                 .block(Block::default())
                 .alignment(Alignment::Left)
                 .wrap(Wrap { trim: true });

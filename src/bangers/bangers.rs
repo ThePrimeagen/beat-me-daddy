@@ -30,7 +30,7 @@ const DRUM_NAMES: [&str; 22] = [
 ];
 
 pub enum WriteNode {
-    Thing(String, usize, bool),
+    Thing(&'static str, usize, bool),
     ThingDone,
     ThingFinished,
 }
@@ -45,7 +45,7 @@ pub enum Direction {
     Column,
 }
 
-type DrumLine = HashMap<String, [bool; BEAT_COUNT]>;
+type DrumLine = HashMap<&'static str, [bool; BEAT_COUNT]>;
 
 pub struct Bangers {
     drums: DrumLine,
@@ -88,7 +88,7 @@ pub fn deserialize(str: &String) -> Result<DrumLine, std::io::Error> {
                 return beats;
             });
 
-        drums.insert(drum.to_string(), line);
+        drums.insert(drum, line);
     }
 
     return Ok(drums);
@@ -105,8 +105,8 @@ impl Bangers {
 
     pub fn reset(&mut self) {
         let mut drums = HashMap::new();
-        for name in &DRUM_NAMES {
-            drums.insert(name.to_string(), [false; BEAT_COUNT]);
+        for name in DRUM_NAMES {
+            drums.insert(name, [false; BEAT_COUNT]);
         }
         self.drums = drums;
     }
@@ -140,7 +140,7 @@ impl Bangers {
                     for drum_name in DRUM_NAMES {
                         //for (drum, positions) in &self.drums {
                         writer.write(WriteNode::Thing(
-                            drum_name.to_string(),
+                            drum_name,
                             pos,
                             self.drums.get(drum_name).unwrap()[pos],
                         ));
@@ -154,7 +154,7 @@ impl Bangers {
                 for drum_name in DRUM_NAMES {
                     for pos in 0..BEAT_COUNT {
                         writer.write(WriteNode::Thing(
-                            drum_name.to_string(),
+                            drum_name,
                             pos,
                             self.drums.get(drum_name).unwrap()[pos],
                         ));
