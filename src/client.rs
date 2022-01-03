@@ -79,17 +79,20 @@ impl SonicPiSerializer {
             msg: Vec::new(),
         }
     }
+}
 
-    fn to_string(&self) -> String {
-        let mut msg = self.msg.clone();
+impl std::fmt::Display for SonicPiSerializer {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.write_str("live_loop :bangers do\n")?;
+        f.write_str("    use_bpm 120\n")?;
+        for line in &self.msg {
+            f.write_str(line)?;
+            f.write_str("\n")?;
+        }
 
-        // TODO: Research VecDeque
-        // What is it?
-        msg.insert(0, "live_loop :bangers do".to_string());
-        msg.insert(1, "    use_bpm 120".to_string());
-        msg.push("end".to_string());
+        f.write_str("end")?;
 
-        return msg.join("\n");
+        Ok(())
     }
 }
 
