@@ -4,7 +4,7 @@ use tokio::task::JoinHandle;
 use tungstenite::connect;
 use url::Url;
 
-use crate::event::Event;
+use beatmedaddy::event::Event;
 
 pub struct Quirk {
     pub join_handle: JoinHandle<()>,

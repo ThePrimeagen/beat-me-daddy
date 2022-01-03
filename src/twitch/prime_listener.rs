@@ -1,7 +1,8 @@
 use tokio::sync::mpsc::UnboundedSender;
 use super::runners::{Runner, Debug, PlayTheThing, TurnMeDaddy};
 
-use crate::{event::Event, event_bus::Listener};
+use crate::event_bus::Listener;
+use crate::event::Event;
 
 pub struct PrimeListener {
     runners: Vec<Box<dyn Runner + Send>>,

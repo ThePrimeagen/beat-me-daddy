@@ -1,4 +1,4 @@
-use std::{collections::HashMap, str::FromStr};
+use std::{collections::HashMap};
 
 use super::boolizer::{Boolizer, Charizer};
 
@@ -51,50 +51,47 @@ pub struct Bangers {
     drums: DrumLine,
 }
 
-pub struct BangerData;
-impl BangerData {
-    pub fn serialize(map: &DrumLine) -> Result<String, std::io::Error> {
-        let mut boolizer = Boolizer::new(BIT_LENGTH);
+pub fn serialize(map: &DrumLine) -> Result<String, std::io::Error> {
+    let mut boolizer = Boolizer::new(BIT_LENGTH);
 
-        for drum in DRUM_NAMES {
-            match map.get(drum) {
-                Some(line) => {
-                    line.iter().for_each(|b| {
-                        boolizer
-                            .push(*b)
-                            .expect("This to never fail, like the other 2 of them...");
-                    });
-                }
-                None => {}
-            }
-        }
-
-        boolizer.finish()?;
-
-        return Ok(boolizer.data.iter().collect::<String>());
-    }
-
-    pub fn deserialize(str: &String) -> Result<DrumLine, std::io::Error> {
-        let charizer: Charizer = str.parse()?;
-        let drum_lines = charizer.subdivide(BEAT_COUNT);
-        let mut drums: DrumLine = HashMap::new();
-
-        for (idx, drum) in DRUM_NAMES.iter().enumerate() {
-            let line = drum_lines
-                .get(idx)
-                .expect("The number of drum lines should never differ from the drum set")
-                .iter()
-                .enumerate()
-                .fold([false; BEAT_COUNT], |mut beats, (idx, on)| {
-                    beats[idx] = *on;
-                    return beats;
+    for drum in DRUM_NAMES {
+        match map.get(drum) {
+            Some(line) => {
+                line.iter().for_each(|b| {
+                    boolizer
+                        .push(*b)
+                        .expect("This to never fail, like the other 2 of them...");
                 });
-
-            drums.insert(drum.to_string(), line);
+            }
+            None => {}
         }
-
-        return Ok(drums);
     }
+
+    boolizer.finish()?;
+
+    return Ok(boolizer.data.iter().collect::<String>());
+}
+
+pub fn deserialize(str: &String) -> Result<DrumLine, std::io::Error> {
+    let charizer: Charizer = str.parse()?;
+    let drum_lines = charizer.subdivide(BEAT_COUNT);
+    let mut drums: DrumLine = HashMap::new();
+
+    for (idx, drum) in DRUM_NAMES.iter().enumerate() {
+        let line = drum_lines
+            .get(idx)
+            .expect("The number of drum lines should never differ from the drum set")
+            .iter()
+            .enumerate()
+            .fold([false; BEAT_COUNT], |mut beats, (idx, on)| {
+                beats[idx] = *on;
+                return beats;
+            });
+
+        drums.insert(drum.to_string(), line);
+    }
+
+    return Ok(drums);
 }
 
 impl Bangers {
@@ -116,15 +113,14 @@ impl Bangers {
 
     // For twitch
     pub fn bang(&mut self, bang: &String) -> Result<(), Box<dyn std::error::Error>> {
-        self.drums = BangerData::deserialize(&bang.chars().skip(1).collect::<String>())?;
+        self.drums = deserialize(&bang.chars().skip(1).collect::<String>())?;
         return Ok(());
     }
 
     // For the cli
-    pub fn on(&mut self, drum_idx: usize, column: usize) {
-        self.drums
-            .entry(DRUM_NAMES[drum_idx].to_string())
-            .or_insert([false; BEAT_COUNT])[column] = true;
+    pub fn toggle(&mut self, drum_idx: usize, column: usize) {
+        let drums = self.drums.get_mut(DRUM_NAMES[drum_idx]).unwrap();
+        drums[column] = !drums[column];
     }
 
     pub fn get_keys() -> &'static [&'static str] {

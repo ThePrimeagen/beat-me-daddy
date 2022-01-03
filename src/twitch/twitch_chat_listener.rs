@@ -10,7 +10,7 @@ pub struct TwitchChatListener {
 /*
 */
 
-pub fn allow(nick: &String) -> bool {
+pub fn allow(_nick: &String) -> bool {
     /*
     return [
         "oldmanjudo",
@@ -24,7 +24,7 @@ pub fn allow(nick: &String) -> bool {
 impl Listener for TwitchChatListener {
     fn notify(&mut self, event: &Event) {
         if let Event::TwitchIRC(ServerMessage::Privmsg(e)) = event {
-            if allow(&e.sender.name) && beatmedaddy::bangers::boolizer::is_bang_command(&e.message_text) {
+            if allow(&e.sender.name) && crate::bangers::boolizer::is_bang_command(&e.message_text) {
                 self.tx.send(Event::DrumCommand(e.message_text.clone())).expect("Successful successing of drum successions");
             }
         } else if let Event::QuirkMessage(s) = event {

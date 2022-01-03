@@ -1,17 +1,15 @@
-use crate::util::event::{Event, Events};
 use beatmedaddy::bangers::bangers::{self, Bangers, BangersSerializer, WriteNode};
 use beatmedaddy::bangers::boolizer::{Boolizer, STARTING_UTF};
-use itertools::Itertools;
+use beatmedaddy::twitch::twitch_client::Twitch;
 use std::collections::HashMap;
 use std::io::{self, Stdout};
 use termion::event::Key;
-use termion::input::TermRead;
 use termion::raw::{IntoRawMode, RawTerminal};
 use tui::backend::TermionBackend;
-use tui::layout::{Alignment, Constraint, Direction, Layout, Rect};
-use tui::style::{Color, Modifier, Style};
-use tui::text::{Span, Spans, Text};
-use tui::widgets::{Block, BorderType, Borders, Paragraph, Widget, Wrap};
+use tui::layout::{Alignment, Constraint, Direction, Layout};
+use tui::style::{Color, Style};
+use tui::text::{Span, Spans};
+use tui::widgets::{Block, Paragraph, Wrap};
 use tui::Terminal;
 
 const SEPARATOR: &str = "░";
@@ -22,6 +20,7 @@ const SELECTED: &str = "█";
 const BEAT_COUNT: usize = 64;
 
 pub struct UI {
+    twitch: Option<Twitch>,
     bangers: Bangers,
     terminal: Terminal<TermionBackend<RawTerminal<Stdout>>>,
     cursor: Cursor,
@@ -215,7 +214,7 @@ macro_rules! call_cursor {
 }
 
 impl UI {
-    pub fn new() -> Result<UI, Box<dyn std::error::Error>> {
+    pub fn new(twitch: Option<Twitch>) -> Result<UI, Box<dyn std::error::Error>> {
         let stdout = io::stdout().into_raw_mode()?;
         let backend = TermionBackend::new(stdout);
         let mut terminal = Terminal::new(backend)?;
@@ -224,12 +223,13 @@ impl UI {
         return Ok(UI {
             bangers: Bangers::new(),
             terminal,
+            twitch,
             cursor: Cursor::new(),
             title: "Sugma".to_string(),
         });
     }
 
-    pub fn key(&mut self, key: Key) -> Result<(), Box<dyn std::error::Error>> {
+    pub async fn key(&mut self, key: Key) -> Result<(), Box<dyn std::error::Error>> {
         match key {
             Key::Char('_') => call_cursor!(self, A),
             Key::Char('$') => call_cursor!(self, I),
@@ -243,13 +243,16 @@ impl UI {
             Key::Char('j') => call_cursor!(self, j),
             Key::Char('k') => call_cursor!(self, k),
             Key::Char(' ') => {
-                self.bangers.on(self.cursor.drum_idx, self.cursor.column);
+                self.bangers.toggle(self.cursor.drum_idx, self.cursor.column);
                 self.render()?;
             }
             Key::Char('\n') => {
                 let mut serializer = TwitchSerializer::new(10);
                 self.bangers.serialize(&mut serializer);
                 self.title = serializer.to_twitch_string();
+                if let Some(twitch) = &mut self.twitch {
+                    twitch.send_message(self.title.clone()).await;
+                }
             }
             _ => {}
         }

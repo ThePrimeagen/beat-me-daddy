@@ -1,8 +1,8 @@
-use crate::{
+use beatmedaddy::{
     event::Event,
     event_bus::Listener,
-    opt::PiOpts
 };
+use crate::opt::PiOpts;
 
 use std::sync::Arc;
 use beatmedaddy::bangers::bangers::{WriteNode, BangersSerializer, Direction};
