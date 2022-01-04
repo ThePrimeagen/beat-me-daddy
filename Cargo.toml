@@ -1,3 +1,4 @@
+
 [package]
 name = "beatmedaddy"
 version = "0.1.0"
@@ -7,6 +8,7 @@ edition = "2021"
 
 [dependencies]
 async-trait = "0.1.52"
+base64 = "0.13.0"
 dotenv = "0.15.0"
 hyper = { version = "0.14.16", features = ["full"] }
 itertools = "0.10.3"
