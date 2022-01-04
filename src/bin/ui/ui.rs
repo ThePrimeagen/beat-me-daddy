@@ -51,7 +51,7 @@ impl Cursor {
         if self.drum_idx == 0 {
             self.drum_idx = Bangers::get_keys().len() - 1;
         } else {
-            self.drum_idx = self.drum_idx - 1;
+            self.drum_idx -= 1;
         }
     }
 
@@ -111,6 +111,7 @@ impl UIBangerSerializer {
         let mut out: Vec<Spans<'a>> = Vec::new();
 
         for (idx, &drum) in order.iter().enumerate() {
+            #[allow(clippy::if_same_then_else)]
             if cursor.at_drum(idx) {
                 // TODO: Fix this and make it pretty
                 out.push(Spans::from(drum));
@@ -250,7 +251,7 @@ impl UI {
                 self.bangers.serialize(&mut serializer);
                 self.title = serializer.to_twitch_string();
                 if let Some(twitch) = &mut self.twitch {
-                    twitch.send_message(self.title.clone()).await;
+                    twitch.send_message(self.title.clone()).await?;
                 }
             }
             _ => {}

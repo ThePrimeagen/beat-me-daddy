@@ -57,7 +57,7 @@ impl Quirk {
                     println!("is binary {:?}", msg);
                 }
             }
-            return ();
+            return;
         });
 
         return Quirk {

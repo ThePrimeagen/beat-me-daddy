@@ -1,3 +1,4 @@
+#![allow(clippy::needless_return)]
 mod util;
 mod ui;
 

@@ -26,6 +26,8 @@ impl PrimeListener {
             Box::new(Debug {}),
         ];
 
+        drop(tx);
+
         return PrimeListener {
             runners
         };

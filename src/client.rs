@@ -37,7 +37,7 @@ impl Listener for Client {
                 }
             }
             Event::DrumCommand(d) => {
-                if let Err(_) = self.banger.bang(&d) {
+                if self.banger.bang(d).is_err() {
                     println!("Drum command failed {}", d);
                     return;
                 }

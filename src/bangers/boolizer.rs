@@ -7,7 +7,7 @@ pub struct Charizer {
     bit_length: usize,
 }
 
-pub fn is_bang_command(str: &String) -> bool {
+pub fn is_bang_command(str: &str) -> bool {
     return str.starts_with(STARTING_UTF);
 }
 
@@ -29,7 +29,7 @@ impl Charizer {
         return Charizer {
             data: Vec::new(),
             bit_length,
-        }
+        };
     }
 
     pub fn push(&mut self, c: char) -> Result<(), std::io::Error> {
@@ -56,11 +56,8 @@ impl Charizer {
             curr.push(*b);
         }
 
-        if curr.len() > 0 {
-            for _ in curr.len()..line_length {
-                curr.push(false);
-            }
-
+        if !curr.is_empty() {
+            curr.resize(line_length, false);
             out.push(curr);
         }
 
@@ -190,4 +187,3 @@ mod test {
         return Ok(());
     }
 }
-

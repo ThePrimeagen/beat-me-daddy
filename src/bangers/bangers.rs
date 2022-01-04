@@ -1,4 +1,4 @@
-use std::{collections::HashMap};
+use std::collections::HashMap;
 
 use super::constants::{BEAT_COUNT, BIT_LENGTH, DRUM_NAMES};
 use super::boolizer::{Boolizer, Charizer};
@@ -28,17 +28,12 @@ pub struct Bangers {
 pub fn serialize(map: &DrumLine) -> Result<String, std::io::Error> {
     let mut boolizer = Boolizer::new(BIT_LENGTH);
 
-    for drum in DRUM_NAMES {
-        match map.get(drum) {
-            Some(line) => {
-                line.iter().for_each(|b| {
-                    boolizer
-                        .push(*b)
-                        .expect("This to never fail, like the other 2 of them...");
-                });
-            }
-            None => {}
-        }
+    for line in DRUM_NAMES.iter().filter_map(|drum| map.get(drum)) {
+        line.iter().for_each(|b| {
+            boolizer
+                .push(*b)
+                .expect("This to never fail, like the other 2 of them...");
+        });
     }
 
     boolizer.finish()?;
@@ -46,7 +41,7 @@ pub fn serialize(map: &DrumLine) -> Result<String, std::io::Error> {
     return Ok(boolizer.data.iter().collect::<String>());
 }
 
-pub fn deserialize(str: &String) -> Result<DrumLine, std::io::Error> {
+pub fn deserialize(str: &str) -> Result<DrumLine, std::io::Error> {
     let charizer: Charizer = str.parse()?;
     let drum_lines = charizer.subdivide(BEAT_COUNT);
     let mut drums: DrumLine = HashMap::new();
@@ -86,7 +81,7 @@ impl Bangers {
     }
 
     // For twitch
-    pub fn bang(&mut self, bang: &String) -> Result<(), Box<dyn std::error::Error>> {
+    pub fn bang(&mut self, bang: &str) -> Result<(), Box<dyn std::error::Error>> {
         self.drums = deserialize(&bang.chars().skip(1).collect::<String>())?;
         return Ok(());
     }

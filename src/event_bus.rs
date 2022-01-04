@@ -11,6 +11,7 @@ pub trait Dispatchable {
     fn register_listener(&mut self, listener: Arc<Mutex<dyn Listener + Send>>);
 }
 
+#[derive(Default)]
 pub struct Dispatcher {
     /// A list of synchronous weak refs to listeners
     listeners: Vec<Arc<Mutex<dyn Listener + Send>>>,
@@ -23,14 +24,6 @@ impl Dispatchable for Dispatcher {
     }
 }
 
-impl Dispatcher {
-    pub fn new() -> Dispatcher {
-        return Dispatcher {
-            listeners: Vec::new(),
-        };
-    }
-}
-
 pub fn run_dispatcher(mut rx: UnboundedReceiver<crate::event::Event>, mut dispatcher: Dispatcher) -> JoinHandle<()> {
     let output_handle = tokio::spawn(async move {
         while let Some(message) = rx.recv().await {
@@ -39,7 +32,7 @@ pub fn run_dispatcher(mut rx: UnboundedReceiver<crate::event::Event>, mut dispat
             }
         }
 
-        return ();
+        return;
     });
 
     return output_handle;

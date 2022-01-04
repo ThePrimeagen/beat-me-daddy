@@ -17,12 +17,8 @@ pub fn server(opts: Arc<PiOpts>) -> Result<(), Box<dyn std::error::Error>> {
         spawn(move || {
             let mut websocket = accept(stream.unwrap()).unwrap();
             println!("Connection accepted");
-            loop {
-                let msg = match websocket.read_message() {
-                    Ok(m) => m,
-                    Err(_) => break
-                };
 
+            while let Ok(msg) = websocket.read_message() {
                 // We do not want to send back ping/pong messages.
                 if msg.is_text() {
                     println!("music: {}", msg);

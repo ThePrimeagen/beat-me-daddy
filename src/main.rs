@@ -1,3 +1,4 @@
+#![allow(clippy::needless_return)]
 use beatmedaddy::event_bus::{Dispatchable, Dispatcher, run_dispatcher};
 use structopt::StructOpt;
 use std::sync::{Arc, Mutex};
@@ -35,7 +36,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     } else {
         let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
 
-        let mut events = Dispatcher::new();
+        let mut events = Dispatcher::default();
         let twitch = Twitch::new(Some(tx.clone())).await;
         let prime_events = Arc::new(Mutex::new(PrimeListener::new(tx.clone())));
         let twitch_chat_listener = Arc::new(Mutex::new(TwitchChatListener::new(tx.clone())));
