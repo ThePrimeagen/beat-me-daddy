@@ -1,3 +1,5 @@
+#![feature(slice_group_by)]
+
 use beatmedaddy::event_bus::{Dispatchable, Dispatcher, run_dispatcher};
 use structopt::StructOpt;
 use std::sync::{Arc, Mutex};
@@ -6,7 +8,6 @@ mod opt;
 mod server;
 mod client;
 mod quirk;
-mod bangers;
 
 use opt::PiOpts;
 use server::server;

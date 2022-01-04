@@ -17,6 +17,8 @@ const SEPARATOR: &str = "░";
 const UNSELECTED: &str = "▒";
 const SELECTED: &str = "█";
 
+pub type PrimeResult<T> = Result<T, Box<dyn std::error::Error>>;
+
 pub struct UI {
     twitch: Option<Twitch>,
     bangers: Bangers,
@@ -157,14 +159,14 @@ struct TwitchSerializer {
 }
 
 impl TwitchSerializer {
-    fn new(bit_length: usize) -> TwitchSerializer {
+    fn new() -> TwitchSerializer {
         return TwitchSerializer {
-            data: Boolizer::new(bit_length)
+            data: Boolizer::new()
         }
     }
 
-    fn to_twitch_string(&self) -> String {
-        return STARTING_UTF.to_string() + &self.data.data.iter().collect::<String>();
+    fn to_twitch_string(&self) -> PrimeResult<String> {
+        return Ok(STARTING_UTF.to_string() + &self.data.encode()?);
     }
 }
 
@@ -227,6 +229,7 @@ impl UI {
         });
     }
 
+    // TODO: Look at the anyhow crate
     pub async fn key(&mut self, key: Key) -> Result<(), Box<dyn std::error::Error>> {
         match key {
             Key::Char('_') => call_cursor!(self, A),
@@ -245,9 +248,9 @@ impl UI {
                 self.render()?;
             }
             Key::Char('\n') => {
-                let mut serializer = TwitchSerializer::new(10);
+                let mut serializer = TwitchSerializer::new();
                 self.bangers.serialize(&mut serializer);
-                self.title = serializer.to_twitch_string();
+                self.title = serializer.to_twitch_string()?;
                 if let Some(twitch) = &mut self.twitch {
                     twitch.send_message(self.title.clone()).await;
                 }

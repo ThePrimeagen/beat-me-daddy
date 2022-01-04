@@ -1,6 +1,8 @@
-use std::{collections::HashMap};
+use crate::encoding::{decode, encode};
 
-use super::{boolizer::{Boolizer, Charizer}, consts::{BIT_LENGTH, BEAT_COUNT}};
+use super::{boolizer::Boolizer, consts::BEAT_COUNT};
+
+use std::collections::{HashMap, VecDeque};
 
 const DRUM_NAMES: [&str; 22] = [
     "bd_pure",
@@ -49,8 +51,10 @@ pub struct Bangers {
     drums: DrumLine,
 }
 
-pub fn serialize(map: &DrumLine) -> Result<String, std::io::Error> {
-    let mut boolizer = Boolizer::new(BIT_LENGTH);
+type PrimeResult<T> = Result<T, Box<dyn std::error::Error>>;
+
+pub fn serialize(map: &DrumLine) -> PrimeResult<String> {
+    let mut boolizer = Boolizer::new();
 
     for drum in DRUM_NAMES {
         match map.get(drum) {
@@ -67,29 +71,76 @@ pub fn serialize(map: &DrumLine) -> Result<String, std::io::Error> {
 
     boolizer.finish()?;
 
-    return Ok(boolizer.data.iter().collect::<String>());
+    return Ok(encode(&boolizer.data)?);
 }
 
-pub fn deserialize(str: &String) -> Result<DrumLine, std::io::Error> {
-    let charizer: Charizer = str.parse()?;
-    let drum_lines = charizer.subdivide(BEAT_COUNT);
-    let mut drums: DrumLine = HashMap::new();
+#[cfg(test)]
+mod test {
+    use super::*;
+    #[test]
+    fn test_charizer() -> Result<(), Box<dyn std::error::Error>> {
+        let out = deserialize(&"88z0z0z0z0z0z0z0z0z0z0z0z0z0z0z0x0".to_string())?;
+        let bd_boom = out.get(DRUM_NAMES[0]).unwrap();
 
-    for (idx, drum) in DRUM_NAMES.iter().enumerate() {
-        let line = drum_lines
-            .get(idx)
-            .expect("The number of drum lines should never differ from the drum set")
-            .iter()
-            .enumerate()
-            .fold([false; BEAT_COUNT], |mut beats, (idx, on)| {
-                beats[idx] = *on;
-                return beats;
-            });
+        assert_eq!(bd_boom[0], true);
+        assert_eq!(bd_boom[4], true);
 
-        drums.insert(drum.to_string(), line);
+        return Ok(());
+    }
+}
+
+// TODO: AGain... the errors.  You should really learn how to do this...
+pub fn deserialize(str: &String) -> Result<DrumLine, Box<dyn std::error::Error>> {
+    let hex_str = decode(str)?;
+    let bools = hex_str
+        .iter()
+        .flat_map(|byte| {
+            let mut bools: Vec<bool> = vec![];
+
+            for i in 0..8 {
+                bools.push((byte >> (7 - i)) & 0x1 == 0x1);
+            }
+
+            return bools;
+        })
+        .collect::<VecDeque<bool>>();
+
+    let mut acc: Vec<Vec<bool>> = Vec::new();
+    let mut curr: Vec<bool> = Vec::new();
+
+    for b in &bools {
+        if curr.len() == BEAT_COUNT {
+            acc.push(curr);
+            curr = Vec::new();
+        }
+        curr.push(*b);
     }
 
-    return Ok(drums);
+    if curr.len() > 0 {
+        for _ in curr.len()..BEAT_COUNT {
+            curr.push(false);
+        }
+        acc.push(curr);
+    }
+
+    if bools.len() != BEAT_COUNT * DRUM_NAMES.len() {
+        return Err(Box::new(std::io::Error::new(
+            std::io::ErrorKind::InvalidInput,
+            "WHY DID YOU TRY TO CHEAT ON ME?",
+        )));
+    }
+
+    let mut drum_line: DrumLine = HashMap::new();
+    for (idx, drum) in DRUM_NAMES.iter().enumerate() {
+        for beat_idx in 0..BEAT_COUNT {
+            drum_line
+                .entry(drum.to_string())
+                .or_insert([false; BEAT_COUNT])[beat_idx] =
+                *bools.get(idx * BEAT_COUNT + beat_idx).unwrap();
+        }
+    }
+
+    return Ok(drum_line);
 }
 
 impl Bangers {
