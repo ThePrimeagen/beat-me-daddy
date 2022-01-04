@@ -153,11 +153,11 @@ mod test {
 
         let drum_lines = charizer.subdivide(20);
 
-        assert!(*drum_lines.get(0).unwrap().get(0).unwrap() == true);
-        assert!(*drum_lines.get(0).unwrap().get(19).unwrap() == true);
+        assert!(drum_lines[0][0]);
+        assert!(drum_lines[0][19]);
 
-        assert!(*drum_lines.get(1).unwrap().get(9).unwrap() == true);
-        assert!(*drum_lines.get(1).unwrap().get(10).unwrap() == true);
+        assert!(drum_lines[1][9]);
+        assert!(drum_lines[1][10]);
 
         return Ok(());
     }
