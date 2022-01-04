@@ -1,5 +1,6 @@
 use beatmedaddy::bangers::bangers::{self, Bangers, BangersSerializer, WriteNode};
-use beatmedaddy::bangers::boolizer::{Boolizer, STARTING_UTF};
+use beatmedaddy::bangers::boolizer::Boolizer;
+use beatmedaddy::bangers::constants::{BEAT_COUNT, BIT_LENGTH, STARTING_UTF};
 use beatmedaddy::twitch::twitch_client::Twitch;
 use std::collections::HashMap;
 use std::io::{self, Stdout};
@@ -15,9 +16,6 @@ use tui::Terminal;
 const SEPARATOR: &str = "░";
 const UNSELECTED: &str = "▒";
 const SELECTED: &str = "█";
-// TODO: BEAT_COUNT really needs to be driven by the server
-// We need a source of truth
-const BEAT_COUNT: usize = 64;
 
 pub struct UI {
     twitch: Option<Twitch>,
@@ -248,7 +246,7 @@ impl UI {
                 self.render()?;
             }
             Key::Char('\n') => {
-                let mut serializer = TwitchSerializer::new(10);
+                let mut serializer = TwitchSerializer::new(BIT_LENGTH);
                 self.bangers.serialize(&mut serializer);
                 self.title = serializer.to_twitch_string();
                 if let Some(twitch) = &mut self.twitch {

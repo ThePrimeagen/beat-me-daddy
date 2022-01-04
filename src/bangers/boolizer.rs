@@ -1,8 +1,6 @@
 use std::str::FromStr;
 
-pub const BIT_LENGTH: usize = 10;
-pub const STARTING_UTF: char = '♥';
-const STARTING_UTF_OFFSET: u32 = '♥' as u32;
+use super::constants::{BIT_LENGTH, STARTING_UTF, STARTING_UTF_OFFSET};
 
 pub struct Charizer {
     pub data: Vec<bool>,
@@ -148,7 +146,7 @@ mod test {
             Boolizer::to_char(0x1 << 9)?.unwrap(),
         ];
 
-        let mut charizer = Charizer::new(10);
+        let mut charizer = Charizer::new(BIT_LENGTH);
         for c in chars {
             charizer.push(c)?;
         }
@@ -172,7 +170,7 @@ mod test {
         bools[29] = true;
         bools[30] = true;
 
-        let mut boolizer = Boolizer::new(10);
+        let mut boolizer = Boolizer::new(BIT_LENGTH);
         for b in bools {
             boolizer.push(b)?;
         }
