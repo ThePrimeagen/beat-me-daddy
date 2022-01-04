@@ -1,8 +1,6 @@
 use std::str::FromStr;
 
-pub const BIT_LENGTH: usize = 10;
-pub const STARTING_UTF: char = '♥';
-const STARTING_UTF_OFFSET: u32 = '♥' as u32;
+use super::consts::{STARTING_UTF, BIT_LENGTH, STARTING_UTF_OFFSET};
 
 pub struct Charizer {
     pub data: Vec<bool>,

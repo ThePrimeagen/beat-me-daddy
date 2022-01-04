@@ -1,9 +1,7 @@
 use std::{collections::HashMap};
 
-use super::boolizer::{Boolizer, Charizer};
+use super::{boolizer::{Boolizer, Charizer}, consts::{BIT_LENGTH, BEAT_COUNT}};
 
-const BIT_LENGTH: usize = 10;
-const BEAT_COUNT: usize = 64;
 const DRUM_NAMES: [&str; 22] = [
     "bd_pure",
     "bd_boom",

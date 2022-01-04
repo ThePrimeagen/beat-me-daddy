@@ -19,12 +19,19 @@ use beatmedaddy::twitch::{
     twitch_chat_listener::TwitchChatListener,
 };
 
+pub const STARTING_UTF: char = '♥';
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv()?;
 
     let opt = Arc::new(PiOpts::from_args());
+    print!("drummers: ");
+
+    for i in 22..1024 {
+        print!("{}", char::from_u32(STARTING_UTF as u32 + i).unwrap());
+    }
+    println!();
 
     if opt.debug {
         println!("{:?}", opt);
