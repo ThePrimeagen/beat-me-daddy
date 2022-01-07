@@ -1,4 +1,8 @@
 ### look_at_me_daddy
+Requires Rust nightly to build
+1. run `rustup toolchain install nightly`
+2. run `rustup default nightly`
+
 To run the TUI client there are two steps
 
 1.  copy the .env-example to .env and fill in the proper values.
