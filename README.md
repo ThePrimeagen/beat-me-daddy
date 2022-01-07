@@ -1,3 +1,6 @@
+## USE NIGHTLY
+STOP TELLING ME THINGS
+
 ### look_at_me_daddy
 To run the TUI client there are two steps
 

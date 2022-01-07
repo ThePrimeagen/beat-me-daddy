@@ -47,14 +47,10 @@ impl Quirk {
         // otherwise they will back up.
         let join_handle: JoinHandle<()> = tokio::spawn(async move {
             while let Ok(msg) = socket.read_message() {
-                println!("new quirk message {:?}", msg);
                 if msg.is_text() {
                     let text = msg.into_text().expect("A text messaget should have text");
-                    println!("is text {}", text);
                     let event = Event::QuirkMessage(text);
                     tx.send(event).expect("send to be successful?");
-                } else if msg.is_binary() {
-                    println!("is binary {:?}", msg);
                 }
             }
             return ();

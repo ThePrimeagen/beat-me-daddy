@@ -20,6 +20,8 @@ use beatmedaddy::twitch::{
     twitch_chat_listener::TwitchChatListener,
 };
 
+use crate::quirk::{Quirk, get_quirk_token};
+
 pub const STARTING_UTF: char = '♥';
 
 #[tokio::main]
@@ -45,6 +47,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 
         let mut events = Dispatcher::new();
         let twitch = Twitch::new(Some(tx.clone())).await;
+        // let quirk_token = get_quirk_token().await?;
+        // let quirk = Quirk::new(tx.clone(), quirk_token);
         let prime_events = Arc::new(Mutex::new(PrimeListener::new(tx.clone())));
         let twitch_chat_listener = Arc::new(Mutex::new(TwitchChatListener::new(tx.clone())));
         let mut client = Client::new();
