@@ -10,12 +10,12 @@ const DRUM_NAMES: [&str; 22] = [
     "drum_cowbell",
     "drum_roll",
     "drum_heavy_kick",
+    "drum_tom_hi_soft",
+    "drum_tom_hi_hard",
     "drum_tom_mid_soft",
     "drum_tom_mid_hard",
     "drum_tom_lo_soft",
     "drum_tom_lo_hard",
-    "drum_tom_hi_soft",
-    "drum_tom_hi_hard",
     "drum_splash_soft",
     "drum_splash_hard",
     "drum_snare_soft",
@@ -88,6 +88,8 @@ mod test {
         return Ok(());
     }
 }
+// The best song: ♥s89z0z0z0z0z0z0z0z0u080808080808080az0z0g02t0adadadadadadadaf08080g80808d8daz0n1
+// THrobber by TJ: ♥z0z0z0s0221h020080227g08i0200fj0408h0800854z008z0z0q0808080808080808z0z0x0aeaeaeaeaeaeaeafz0n0t8
 
 // TODO: AGain... the errors.  You should really learn how to do this...
 pub fn deserialize(str: &String) -> Result<DrumLine, Box<dyn std::error::Error>> {

@@ -1,5 +1,5 @@
 pub const BIT_LENGTH: usize = 10;
-pub const BEAT_COUNT: usize = 64;
+pub const BEAT_COUNT: usize = 128;
 
 pub const BANG_COMMAND_STARTING_CHAR: char = '♥';
 pub const STARTING_UTF: char = '♥';
