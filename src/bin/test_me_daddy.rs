@@ -17,12 +17,13 @@ fn deflate(s: &str, r: &str, w: &str) -> String {
 }
 
 fn encode_recurse(s: &str, encode_amounts: Vec<usize>) -> String {
+    return "".to_string();
 }
 
 fn main() {
     let string = "00808080800802a00g808008g080bbz0z0z0z0l0808082a0808082808080ad82808082aaq0104q0g4z0z0002r022az0z0005r0g1z0z0z0z0k010828085808280d080808582a08082d53z0m09z0z0z0p02s012dadadadadadadadadadadadadadadadfg05g05g05g05g05g05g05002dz0z0x";
 
-    println!("Size: 2, {:#?}", );
+    println!("Size: 2, {:#?}", encode(string, 2));
     println!("Size: 4, {:#?}", encode(string, 4));
     println!("Size: 6, {:#?}", encode(string, 6));
 }

@@ -1,8 +1,9 @@
 use beatmedaddy::bangers::bangers::{self, Bangers, BangersSerializer, WriteNode};
-use beatmedaddy::bangers::boolizer::Boolizer;
+use beatmedaddy::bangers::boolizer::{is_bang_command, Boolizer};
 use beatmedaddy::bangers::consts::{BEAT_COUNT, STARTING_UTF};
 use beatmedaddy::twitch::twitch_client::Twitch;
 use std::collections::HashMap;
+use std::fs;
 use std::io::{self, Stdout};
 use termion::event::Key;
 use termion::raw::{IntoRawMode, RawTerminal};
@@ -12,6 +13,8 @@ use tui::style::{Color, Style};
 use tui::text::{Span, Spans};
 use tui::widgets::{Block, Paragraph, Wrap};
 use tui::Terminal;
+
+use super::opts::UiConfig;
 
 const SEPARATOR: &str = "░";
 const UNSELECTED: &str = "▒";
@@ -24,6 +27,7 @@ pub struct UI {
     bangers: Bangers,
     terminal: Terminal<TermionBackend<RawTerminal<Stdout>>>,
     cursor: Cursor,
+    opts: UiConfig,
     title: String,
 }
 
@@ -168,6 +172,7 @@ impl TwitchSerializer {
     fn to_twitch_string(&self) -> PrimeResult<String> {
         return Ok(STARTING_UTF.to_string() + &self.data.encode()?);
     }
+
 }
 
 impl BangersSerializer for TwitchSerializer {
@@ -214,18 +219,31 @@ macro_rules! call_cursor {
 }
 
 impl UI {
-    pub fn new(twitch: Option<Twitch>) -> Result<UI, Box<dyn std::error::Error>> {
+    pub fn new(twitch: Option<Twitch>, opts: UiConfig) -> Result<UI, Box<dyn std::error::Error>> {
         let stdout = io::stdout().into_raw_mode()?;
         let backend = TermionBackend::new(stdout);
+        let beat: String = fs::read_to_string(&opts.beat).unwrap_or("".to_string()).trim().to_string();
         let mut terminal = Terminal::new(backend)?;
         terminal.clear()?;
 
+        let mut bangers = Bangers::new();
+        let mut title = "Sugma".to_string();
+
+        if is_bang_command(&beat) {
+            bangers.bang(&beat)?;
+
+            let mut serializer = TwitchSerializer::new();
+            bangers.serialize(&mut serializer);
+            title = serializer.to_twitch_string()?;
+        }
+
         return Ok(UI {
-            bangers: Bangers::new(),
+            bangers,
             terminal,
+            opts,
             twitch,
             cursor: Cursor::new(),
-            title: "Sugma".to_string(),
+            title,
         });
     }
 
@@ -251,12 +269,23 @@ impl UI {
                 let mut serializer = TwitchSerializer::new();
                 self.bangers.serialize(&mut serializer);
                 self.title = serializer.to_twitch_string()?;
+
+                self.save_file()?;
+
                 if let Some(twitch) = &mut self.twitch {
-                    twitch.send_message(self.title.clone()).await;
+                    twitch.send_message(self.title.clone()).await?;
                 }
             }
             _ => {}
         }
+        return Ok(());
+    }
+
+    fn save_file(&mut self) -> Result<(), Box<dyn std::error::Error>> {
+        if self.opts.beat.exists() {
+            fs::write(&self.opts.beat, &self.title)?;
+        }
+
         return Ok(());
     }
 

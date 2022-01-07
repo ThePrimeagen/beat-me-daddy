@@ -2,16 +2,19 @@ mod util;
 mod ui;
 
 use termion::event::Key;
+use ui::opts::UiConfig;
 use util::event::{Events, Event};
 use beatmedaddy::twitch::twitch_client::Twitch;
+use structopt::StructOpt;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv()?;
+    let opts = UiConfig::from_args();
 
     let events = Events::new();
     let twitch = Twitch::new(None).await;
-    let mut ui = ui::ui::UI::new(Some(twitch))?;
+    let mut ui = ui::ui::UI::new(Some(twitch), opts)?;
 
     loop {
         match events.next() {

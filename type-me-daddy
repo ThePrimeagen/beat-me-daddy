@@ -1,0 +1,3 @@
+sleep 5
+xdotool type --delay 95 " I have seen many "
+
