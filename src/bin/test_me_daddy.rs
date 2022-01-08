@@ -54,7 +54,6 @@ fn squeeze(s: &str, r: &str, w: &str) -> String {
 fn squeeze_once(s: &str, len: usize, r: &str) -> Option<(String, String)> {
     let groups = encode(s, len);
     let first = groups.iter().sorted_by(|a, b| b.1.cmp(a.1)).nth(0)?;
-    println!("squeezing with {:?}", first);
 
     if first.1 < &4 {
         return None;
@@ -75,7 +74,6 @@ fn squeeze_me_daddy(str: &String) -> String {
             count += 1;
             replacements.push(format!("{}{}", c, s.0));
             str = s.1;
-            println!("squeeze_me_daddy({}): {}", count, str);
         } else {
             break;
         }
@@ -116,14 +114,11 @@ fn spread_me_daddy(str: &String) -> Result<String, DaddyIssues> {
         ));
     }
 
-    println!("replacements: {}", replacements);
     for i in (0..count).rev() {
         let set = &replacements[i * 3..i * 3 + 3];
         let replacer = &set[0..1];
         let replacee = &set[1..];
         str = str.replace(replacer, replacee);
-        println!("spread({}): {} with {}", i, replacer, replacee);
-        println!("spread({}): {}", i, str);
     }
 
     return Ok(str);
