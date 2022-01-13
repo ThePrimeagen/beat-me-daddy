@@ -1,4 +1,4 @@
-use tokio::sync::mpsc::UnboundedSender;
+use futures_channel::mpsc::UnboundedSender;
 use super::runners::{Runner, Debug, PlayTheThing, TurnMeDaddy};
 
 use crate::event_bus::Listener;

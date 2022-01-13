@@ -13,7 +13,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let opts = UiConfig::from_args();
 
     let events = Events::new();
-    let twitch = Twitch::new(None).await;
+    let twitch = Twitch::new();
     let mut ui = ui::ui::UI::new(Some(twitch), opts)?;
 
     loop {

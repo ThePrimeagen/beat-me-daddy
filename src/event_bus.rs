@@ -1,5 +1,7 @@
 use std::sync::{Arc, Mutex};
-use tokio::{sync::mpsc::UnboundedReceiver, task::JoinHandle};
+use futures_channel::mpsc::UnboundedReceiver;
+use futures_util::StreamExt;
+use tokio::{task::JoinHandle};
 
 use crate::event::Event;
 
@@ -33,13 +35,15 @@ impl Dispatcher {
 
 pub fn run_dispatcher(mut rx: UnboundedReceiver<crate::event::Event>, mut dispatcher: Dispatcher) -> JoinHandle<()> {
     let output_handle = tokio::spawn(async move {
-        while let Some(message) = rx.recv().await {
-            for l in dispatcher.listeners.iter_mut() {
-                l.lock().expect("Dumb ass kid back home").notify(&message.clone());
+        loop {
+            println!("wating on run_dispatech");
+            if let Some(message) = rx.next().await {
+                println!("Received message! {:?}", message);
+                for l in dispatcher.listeners.iter_mut() {
+                    l.lock().expect("listener lock shouldn't ever fail").notify(&message.clone());
+                }
             }
         }
-
-        return ();
     });
 
     return output_handle;

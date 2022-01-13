@@ -3,9 +3,41 @@ use std::{collections::HashMap, num::ParseIntError};
 use itertools::Itertools;
 
 #[derive(Debug)]
-enum DaddyIssues {
+pub enum DaddyIssues {
     ParseInt(ParseIntError),
     MalformedString(String),
+}
+
+impl std::fmt::Display for DaddyIssues {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        return match self {
+            DaddyIssues::ParseInt(e) => {
+                write!(f, "{}", e)
+            },
+            DaddyIssues::MalformedString(e) => {
+                write!(f, "{}", e)
+            },
+        }
+    }
+}
+
+impl std::error::Error for DaddyIssues {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        return match self {
+            DaddyIssues::ParseInt(e) => Some(e),
+            DaddyIssues::MalformedString(e) => {
+                None
+            },
+        };
+    }
+
+    fn description(&self) -> &str {
+        "description() is deprecated; use Display"
+    }
+
+    fn cause(&self) -> Option<&dyn std::error::Error> {
+        self.source()
+    }
 }
 
 impl From<ParseIntError> for DaddyIssues {
@@ -62,7 +94,7 @@ fn squeeze_once(s: &str, len: usize, r: &str) -> Option<(String, String)> {
     return Some((first.0.to_string(), squeeze(s, first.0, r)));
 }
 
-fn squeeze_me_daddy(str: &String) -> String {
+pub fn squeeze_me_daddy(str: &String) -> String {
     let mut str = str.to_string();
     let mut count: u32 = 0;
     let mut replacements: Vec<String> = vec![];
@@ -101,7 +133,7 @@ fn split_me_daddy(str: String) -> Result<(usize, String, String), DaddyIssues> {
         str.chars().skip(1 + count_str.len() + count * 3).collect::<String>(),
     ));
 }
-fn spread_me_daddy(str: &String) -> Result<String, DaddyIssues> {
+pub fn spread_me_daddy(str: &String) -> Result<String, DaddyIssues> {
     if !str.starts_with('_') {
         return Ok(str.to_string());
     }
@@ -224,16 +256,4 @@ mod test_spread {
         assert_eq!(string3, string);
         return Ok(());
     }
-}
-
-fn main() -> Result<(), DaddyIssues> {
-    let string: String = "00808080800802a00g808008g080bbz0z0z0z0l0808082a0808082808080ad82808082aa0044m0104q0g4z0p02an02r022az0p019n05r0g1z0z0z0z0k010828085808280d080808582a08082d53z0m09z0z0z0p02s012dadadadadadadadadadadadadadadadfg05g05g05g05g05g05g05002dz0z0x0".to_string();
-    let string2: String = squeeze_me_daddy(&string);
-    let string3: String = spread_me_daddy(&string2)?;
-
-    assert_eq!(string, string3);
-    println!("{} vs {}", string2.len(), string3.len());
-    println!("{}", string3);
-    println!("{}", string2);
-    return Ok(());
 }

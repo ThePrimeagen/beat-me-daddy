@@ -1,32 +1,31 @@
 #![feature(slice_group_by)]
 
 use beatmedaddy::event_bus::{Dispatchable, Dispatcher, run_dispatcher};
+use futures_channel::mpsc::unbounded;
+
 use structopt::StructOpt;
 use std::sync::{Arc, Mutex};
 
 mod opt;
 mod server;
 mod client;
-mod quirk;
 
 use opt::PiOpts;
 use server::server;
 use client::Client;
 
-use beatmedaddy::event::Event;
+use beatmedaddy::event::{Event, Eventer};
 use beatmedaddy::twitch::{
     prime_listener::PrimeListener,
-    twitch_client::Twitch,
     twitch_chat_listener::TwitchChatListener,
 };
-
-use crate::quirk::{Quirk, get_quirk_token};
 
 pub const STARTING_UTF: char = '♥';
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn std::error::Error>> {
     dotenv::dotenv()?;
+    env_logger::init();
 
     let opt = Arc::new(PiOpts::from_args());
     print!("drummers: ");
@@ -43,15 +42,13 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     if opt.server {
         server(opt).expect("The server should never fail");
     } else {
-        let (tx, rx) = tokio::sync::mpsc::unbounded_channel();
+        let (tx, rx) = unbounded();
 
         let mut events = Dispatcher::new();
-        let twitch = Twitch::new(Some(tx.clone())).await;
-        // let quirk_token = get_quirk_token().await?;
-        // let quirk = Quirk::new(tx.clone(), quirk_token);
         let prime_events = Arc::new(Mutex::new(PrimeListener::new(tx.clone())));
         let twitch_chat_listener = Arc::new(Mutex::new(TwitchChatListener::new(tx.clone())));
         let mut client = Client::new();
+        let eventer = Eventer::new(tx.clone());
 
         client.connect(opt)?;
 
@@ -61,14 +58,15 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let client = Arc::new(Mutex::new(client));
         events.register_listener(client);
 
-        tx.send(Event::StartOfProgram)?;
+        tx.unbounded_send(Event::StartOfProgram)?;
 
         println!("Running dispatcher");
         run_dispatcher(rx, events).await?;
-        if let Some(join_handle) = twitch.join_handle {
-            join_handle.await?;
+        match eventer.join_handle.join() {
+            Err(e) => panic!("eventer didn't join {:?}", e),
+            _ => {}
         }
-
+        println!("Game Over Asshole");
     }
 
 

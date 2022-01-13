@@ -1,13 +1,12 @@
-use tokio::sync::mpsc::UnboundedSender;
-use twitch_irc::message::{ServerMessage, PrivmsgMessage};
-use crate::event::Event;
+use futures_channel::mpsc::UnboundedSender;
+use crate::event::{Event, TwitchChat};
 
 pub trait Runner {
     fn matches(&mut self, event: &Event) -> bool;
 }
 
-fn is_prime(event: &PrivmsgMessage) -> bool {
-    return event.sender.name.eq_ignore_ascii_case("theprimeagen");
+fn is_prime(event: &TwitchChat) -> bool {
+    return event.name.eq_ignore_ascii_case("theprimeagen");
 }
 
 pub struct TurnMeDaddy {
@@ -21,8 +20,8 @@ pub struct PlayTheThing {
 pub struct Debug { }
 impl Runner for Debug {
     fn matches(&mut self, event: &Event) -> bool {
-        if let Event::TwitchIRC(ServerMessage::Privmsg(e)) = event {
-            if e.message_text.starts_with("!debug") {
+        if let Event::TwitchChat(e) = event {
+            if e.text.starts_with("!debug") {
                 let test = '♥';
                 /*
                 print!("DEBUG: ");
@@ -47,13 +46,13 @@ impl Runner for Debug {
 
 impl Runner for PlayTheThing {
     fn matches(&mut self, event: &Event) -> bool {
-        if let Event::TwitchIRC(ServerMessage::Privmsg(e)) = event {
-            if is_prime(e) && e.message_text.starts_with("!play") {
+        if let Event::TwitchChat(e) = event {
+            if is_prime(e) && e.text.starts_with("!play") {
 
-                if e.message_text == "!play stop" {
-                    self.tx.send(Event::Stop).expect("Successful tx send");
+                if e.text == "!play stop" {
+                    self.tx.unbounded_send(Event::Stop).expect("Successful tx send");
                 } else {
-                    self.tx.send(Event::Play(e.message_text[5..].to_string())).expect("Successful tx send");
+                    self.tx.unbounded_send(Event::Play(e.text[5..].to_string())).expect("Successful tx send");
                 }
                 return true;
             }
@@ -64,15 +63,15 @@ impl Runner for PlayTheThing {
 
 impl Runner for TurnMeDaddy {
     fn matches(&mut self, event: &Event) -> bool {
-        if let Event::TwitchIRC(ServerMessage::Privmsg(e)) = event {
+        if let Event::TwitchChat(e) = event {
             if is_prime(e) {
-                match e.message_text.as_str() {
+                match e.text.as_str() {
                     "turn_me_on_daddy" => {
-                        self.tx.send(Event::OnCommand).expect("prime commands shouldn't fail");
+                        self.tx.unbounded_send(Event::OnCommand).expect("prime commands shouldn't fail");
                         return true;
                     },
                     "turn_me_off_daddy" => {
-                        self.tx.send(Event::OffCommand).expect("prime commands shouldn't fail");
+                        self.tx.unbounded_send(Event::OffCommand).expect("prime commands shouldn't fail");
                         return true;
                     },
                     _ => { }

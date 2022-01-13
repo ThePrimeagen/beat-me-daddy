@@ -5,6 +5,7 @@ use super::consts::STARTING_UTF;
 type PrimeResult<T> = Result<T, Box<dyn std::error::Error>>;
 
 pub fn is_bang_command(str: &String) -> bool {
+    println!("Is Bang Command: {}", str.starts_with(STARTING_UTF));
     return str.starts_with(STARTING_UTF);
 }
 

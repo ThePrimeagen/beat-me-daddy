@@ -1,5 +1,4 @@
-use tokio::sync::mpsc::UnboundedSender;
-use twitch_irc::message::ServerMessage;
+use futures_channel::mpsc::UnboundedSender;
 
 use crate::{event::Event, event_bus::Listener};
 
@@ -23,12 +22,12 @@ pub fn allow(_nick: &String) -> bool {
 
 impl Listener for TwitchChatListener {
     fn notify(&mut self, event: &Event) {
-        if let Event::TwitchIRC(ServerMessage::Privmsg(e)) = event {
-            if allow(&e.sender.name) && crate::bangers::boolizer::is_bang_command(&e.message_text) {
-                self.tx.send(Event::DrumCommand(e.message_text.clone())).expect("Successful successing of drum successions");
+        println!("TwitchChatListener#notify: {:?}", event);
+        if let Event::TwitchChat(e) = event {
+            println!("is twitch_chat");
+            if allow(&e.name) && crate::bangers::boolizer::is_bang_command(&e.text) {
+                self.tx.unbounded_send(Event::DrumCommand(e.text.clone())).expect("Successful successing of drum successions");
             }
-        } else if let Event::QuirkMessage(s) = event {
-            println!("Message from Quirk {}", s);
         }
     }
 }
