@@ -209,11 +209,14 @@ impl BangersSerializer for UIBangerSerializer {
     }
 }
 
-macro_rules! call_cursor {
-    ($self:expr, $x:ident) => {
-        {
-            $self.cursor.$x();
-            $self.render()?;
+macro_rules! keymatch {
+    ($self:expr, $pressed:expr, keymap { $($key:pat => $method:ident),+ }, $($tail:tt)*) => {
+        match $pressed {
+            $(Key::Char($key) => {
+                Cursor::$method(&mut $self.cursor);
+                $self.render()?;
+            })*
+            $($tail)*
         }
     };
 }
@@ -249,18 +252,12 @@ impl UI {
 
     // TODO: Look at the anyhow crate
     pub async fn key(&mut self, key: Key) -> Result<(), Box<dyn std::error::Error>> {
-        match key {
-            Key::Char('_') => call_cursor!(self, A),
-            Key::Char('$') => call_cursor!(self, I),
-            Key::Char('I') => call_cursor!(self, I),
-            Key::Char('l') => call_cursor!(self, l),
-            Key::Char('h') => call_cursor!(self, h),
-            Key::Char('B') => call_cursor!(self, B),
-            Key::Char('b') => call_cursor!(self, b),
-            Key::Char('W') => call_cursor!(self, W),
-            Key::Char('w') => call_cursor!(self, w),
-            Key::Char('j') => call_cursor!(self, j),
-            Key::Char('k') => call_cursor!(self, k),
+        keymatch!(self, key,
+            keymap {
+                '_' => A, '$' => I, 'I' => I, 'l' => l,
+                'h' => h, 'B' => B, 'b' => b, 'W' => W,
+                'w' => w, 'j' => j, 'k' => k
+            },
             Key::Char(' ') => {
                 self.bangers.toggle(self.cursor.drum_idx, self.cursor.column);
                 self.render()?;
@@ -277,7 +274,7 @@ impl UI {
                 }
             }
             _ => {}
-        }
+        );
         return Ok(());
     }
 
