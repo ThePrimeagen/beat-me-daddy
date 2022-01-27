@@ -47,7 +47,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         let mut events = Dispatcher::new();
         let prime_events = Arc::new(Mutex::new(PrimeListener::new(tx.clone())));
         let twitch_chat_listener = Arc::new(Mutex::new(TwitchChatListener::new(tx.clone())));
-        let mut client = Client::new();
+        let mut client = Client::new(opt.clone());
         let eventer = Eventer::new(tx.clone());
 
         client.connect(opt)?;

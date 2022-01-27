@@ -20,4 +20,8 @@ pub struct PiOpts {
 
     #[structopt(short = "c", long = "command", default_value = "sonic_pi")]
     pub command: String,
+
+
+    #[structopt(short = "b", long = "bpm", default_value = "120")]
+    pub bpm: u16,
 }

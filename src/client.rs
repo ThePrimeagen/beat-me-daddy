@@ -13,6 +13,7 @@ pub struct Client {
     on: bool,
     socket: Option<WebSocket<MaybeTlsStream<std::net::TcpStream>>>,
     banger: beatmedaddy::bangers::bangers::Bangers,
+    opts: Arc<PiOpts>,
 }
 
 impl Listener for Client {
@@ -50,6 +51,7 @@ impl Listener for Client {
 
 struct SonicPiSerializer {
     msg: Vec<String>,
+    bpm: u16,
 }
 
 impl BangersSerializer for SonicPiSerializer {
@@ -74,9 +76,10 @@ impl BangersSerializer for SonicPiSerializer {
 }
 
 impl SonicPiSerializer {
-    fn new() -> SonicPiSerializer {
+    fn new(opts: Arc<PiOpts>) -> SonicPiSerializer {
         return SonicPiSerializer {
             msg: Vec::new(),
+            bpm: opts.bpm,
         }
     }
 
@@ -86,7 +89,7 @@ impl SonicPiSerializer {
         // TODO: Research VecDeque
         // What is it?
         msg.insert(0, "live_loop :bangers do".to_string());
-        msg.insert(1, "    use_bpm 120".to_string());
+        msg.insert(1, format!("    use_bpm {}", self.bpm));
         msg.push("end".to_string());
 
         return msg.join("\n");
@@ -96,7 +99,7 @@ impl SonicPiSerializer {
 impl Client {
     fn send_music(&mut self) {
         if let Some(socket) = &mut self.socket {
-            let mut serializer = SonicPiSerializer::new();
+            let mut serializer = SonicPiSerializer::new(self.opts.clone());
 
             self.banger.serialize(&mut serializer);
 
@@ -109,11 +112,12 @@ impl Client {
                 );
         }
     }
-    pub fn new() -> Client {
+    pub fn new(opts: Arc<PiOpts>) -> Client {
         return Client {
             on: false,
             socket: None,
             banger: beatmedaddy::bangers::bangers::Bangers::new(),
+            opts,
         };
     }
 
