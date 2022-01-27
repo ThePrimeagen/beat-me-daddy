@@ -1,5 +1,6 @@
 ## USE NIGHTLY
-STOP TELLING ME THINGS
+Once you have rust installed, install nightly
+`rustup toolchain install nightly`
 
 ### look_at_me_daddy
 To run the TUI client there are two steps
